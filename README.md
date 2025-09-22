@@ -201,3 +201,29 @@ python manage.py runserver
 
 لتفعيل هذه الإعدادات على الخادم الإنتاجي، تأكد من ضبط `DJANGO_DEBUG=0` وتهيئة المتغيرات أعلاه في `.env` أو في إعدادات البيئة على مزود الاستضافة.
 
+---
+
+## 🚀 نشر على Railway (مذكرة سريعة)
+
+هذه الخطوات تساعدك على نشر الفرع `feature/deploy` على Railway. الهدف هنا هو تجربة النشر قبل الدمج إلى `main`.
+
+1. في لوحة Railway، أنشئ مشروعًا جديدًا واختر "Deploy from GitHub"، ثم اربط المستودع `loayAlzaben1/LawyersPage`.
+2. اختر الفرع `feature/deploy` كفرع للنشر.
+3. أضف متغيرات البيئة التالية في إعدادات المشروع (Environment):
+	- `DJANGO_SECRET_KEY` — يجب تعيين قيمة آمنة وحقيقية.
+	- `DATABASE_URL` — رابط قاعدة بيانات Postgres (يفضل استخدام أو توفير خدمة PostgreSQL في Railway).
+	- `DJANGO_DEBUG` — اجعلها `0` في الإنتاج.
+	- `DJANGO_ALLOWED_HOSTS` — اسم المجال أو المجالات المصرح بها (مثال: `mydomain.com www.mydomain.com`).
+	- `DEFAULT_FROM_EMAIL` — عنوان البريد الافتراضي لإرسال الإشعارات.
+	- `USE_X_FORWARDED_PROTO` — ضع `1` إذا كنت تستخدم proxy/Load Balancer (مثل Railway reverse proxy).
+
+4. Build & Start commands (Railway should detect from `Procfile`):
+	- Build: `pip install -r requirements.txt`
+	- Start: Railway will run the command from `Procfile` which now runs `collectstatic` and then `gunicorn`.
+
+5. Static files: `collectstatic` runs during startup (see `Procfile`) and WhiteNoise serves static files from the `STATIC_ROOT` directory. If you prefer a CDN or external storage, configure `STATICFILES_STORAGE` and update environment variables accordingly.
+
+6. After deploy, test the live site URL provided by Railway. Keep `feature/deploy` separate from `main` and only merge to `main` after successful verification.
+
+If you want, I can add a small checklist or GitHub Action to run `python manage.py check` and basic tests automatically when the `feature/deploy` branch updates.
+
