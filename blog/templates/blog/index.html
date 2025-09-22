@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}مقالات - {{ SITE_NAME }}{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'blog/css/blog.css' %}">
+  <script src="{% static 'blog/js/readmore.js' %}"></script>
+  {# loadmore will be loaded at the end of body to avoid blocking render #}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="mb-4">المقالات</h1>
+  <div style="font-size:0.9rem;color:var(--success-text,#065f46);background:var(--success-bg,#ecfdf5);border:1px solid var(--success-border,#bbf7d0);padding:8px;border-radius:6px;margin-bottom:12px">Template build: 2025-09-19  (interactive features enabled)</div>
+
+  <!-- DEV-ONLY visible test button to confirm template updates -->
+  <button id="dev-test-btn" style="position:fixed;right:18px;bottom:18px;z-index:9999;background:var(--danger,#dc2626);color:var(--danger-contrast,#fff);border:none;padding:12px 16px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.12);font-weight:700">DEV TEST</button>
+
+  {# Hero featured article: use the first post if present #}
+  {% if posts and posts|length > 0 %}
+    {% with hero=posts.0 %}
+  <section class="hero-article mb-4" style="display:flex;gap:20px;align-items:flex-start;padding:18px;border-radius:10px;border:1px solid var(--card-border, rgba(0,0,0,0.04));background:var(--card-bg,#fff);">
+        <div class="hero-media" style="flex:0 0 420px">
+          {% if hero.processed_og_image_large or hero.processed_og_image_medium or hero.processed_og_image_small %}
+            <img src="{% if hero.processed_og_image_large %}{{ hero.processed_og_image_large.url }}{% elif hero.processed_og_image_medium %}{{ hero.processed_og_image_medium.url }}{% else %}{{ hero.processed_og_image_small.url }}{% endif %}" loading="lazy" alt="{{ hero.title }}" style="width:420px;height:260px;object-fit:cover;border-radius:8px;">
+          {% elif hero.featured_image %}
+            <img src="{{ hero.featured_image.url }}" loading="lazy" alt="{{ hero.title }}">
+          {% else %}
+            <div class="hero-placeholder" style="width:420px;height:260px;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,color-mix(in srgb, var(--card-bg,#f3f4f6) 88%, var(--bg,#fff) 12%), color-mix(in srgb, var(--card-bg,#eef2ff) 88%, var(--bg,#fff) 12%));color:var(--muted-text,#6b7280);border-radius:8px;font-weight:700;">{{ hero.category.name|default:'مقال' }}</div>
+          {% endif %}
+        </div>
+        <div class="hero-body" style="flex:1">
+          <h1 class="hero-title" style="font-size:2.4rem;font-weight:800;color:var(--text,#0b1220);margin:0;">{{ hero.title }}</h1>
+          <div class="hero-meta small text-muted" style="color:var(--muted-text,#6b7280);margin-top:6px">⏱️ <span class="read-time" data-content="{{ hero.content|striptags|length }}"></span> • {{ hero.published_at|date:'j M Y' }}</div>
+          <div class="hero-excerpt mt-3" style="margin-top:12px;color:var(--text,#111827)">{{ hero.content|striptags|truncatewords:60 }}</div>
+          <div class="hero-actions mt-3" style="margin-top:12px">
+            <a href="{{ hero.get_absolute_url }}" class="btn btn-lg btn-primary" style="display:inline-block;padding:10px 18px;border-radius:8px;background:var(--brand,#0d6efd);color:var(--on-brand,#fff);text-decoration:none">اقرأ المقال بالكامل</a>
+            <button class="btn btn-outline-secondary ms-2" style="display:inline-block;margin-inline-start:8px;padding:8px 12px;border-radius:8px;background:transparent;border:1px solid var(--card-border, rgba(0,0,0,0.08))">شارك</button>
+          </div>
+        </div>
+      </section>
+    {% endwith %}
+  {% endif %}
+
+  {# Editable lawyer cards managed via admin #}
+  {% if lawyers and lawyers|length > 0 %}
+    <section class="home-lawyers mb-4">
+      <h2 style="font-size:1.4rem;margin-bottom:12px">فريق المحاميات</h2>
+      {% include 'blog/_lawyer_cards.html' with lawyers=lawyers %}
+    </section>
+  {% endif %}
+
+  <div class="row g-4" id="cards-container">
+    <div style="width:100%;display:flex;justify-content:flex-end;margin-bottom:8px">
+      <div style="min-width:260px">
+        <label for="postsSearch" class="sr-only">بحث المقالات</label>
+        <div class="input-group">
+          <input id="postsSearch" class="form-control" placeholder="ابحث في عناوين المقالات..." aria-label="ابحث في عناوين المقالات" />
+          <div class="input-group-append">
+            <button id="clearPostsSearch" class="btn btn-outline-secondary" type="button" aria-label="مسح البحث"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+          </div>
+        </div>
+        <div class="small text-muted mt-1" id="postsCount" aria-live="polite" style="min-height:1.2rem"></div>
+      </div>
+    </div>
+    <!-- Static demo article so you always see a visible change and can test read-more/comment -->
+    <div class="col-12 d-flex">
+      <article class="blog-card post-card d-flex flex-column w-100 full-post-card fade-in-up" data-stagger="0">
+        <header class="card-header">
+          <h1 class="card-title">مقال تجريبي: حقوق المستهلك في العصر الرقمي</h1>
+        </header>
+        <div class="card-media" style="min-height:140px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--card-bg,#fff), color-mix(in srgb, var(--card-bg,#fff) 90%, var(--bg,#f8fafc) 10%));border-radius:8px;padding:12px">
+          <div style="width:100%;height:140px;background:linear-gradient(90deg,color-mix(in srgb, var(--card-bg,#eef2ff) 88%, var(--bg,#fff) 12%), color-mix(in srgb, var(--card-bg,#f3f6fb) 88%, var(--bg,#fff) 12%));display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--muted-text,#0b3d91);font-weight:700">صورة تجريبية</div>
+        </div>
+        <div class="card-body-custom flex-grow-1">
+          <div class="post-content" data-post-id="demo-1">
+            <div class="excerpt">في هذا المقال نستعرض أهم حقوق المستهلك عند التعامل عبر الإنترنت وكيفية حماية نفسك من الاحتيال والشراء غير الأخلاقي...</div>
+            <div class="full-content" style="display:none">في النسخة الكاملة من المقال سنغطي النقاط التالية: سياسات الاسترجاع، حماية البيانات الشخصية، خطوات تتبع الشحنة، وكيفية توثيق الشكاوى لدى الجهات الرقابية. هذا نص تجريبي لإظهار سلوك "اقرأ المزيد".</div>
+          </div>
+          <div class="meta small text-muted mt-3"><div class="meta-date" style="color:var(--muted-text);">{{ now|date:'j M Y' }}</div></div>
+          <div class="engage-toolbar mt-3" style="display:flex;gap:8px;align-items:center;">
+            <button type="button" class="btn btn-sm btn-readmore" data-post-id="demo-1" style="background:transparent;border:none;color:var(--brand);">اقرأ المزيد</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="demo-comment-btn" style="padding:6px 10px;border-radius:6px;">اكتب تعليق</button>
+          </div>
+          <div id="demo-comment-form" style="display:none;margin-top:12px;border-top:1px solid rgba(0,0,0,0.04);padding-top:12px">
+            <label>الاسم</label>
+            <input class="form-control" type="text" id="demo-name">
+            <label style="margin-top:6px">التعليق</label>
+            <textarea class="form-control" id="demo-comment" rows="3"></textarea>
+            <div style="margin-top:8px"><button id="demo-submit-comment" class="btn btn-primary">إرسال (تجريبي)</button></div>
+            <div id="demo-comment-result" style="margin-top:8px;display:none;color:green">تم استلام تعليقك (محليًا فقط)</div>
+          </div>
+        </div>
+      </article>
+    </div>
+    {% include 'blog/_cards_page.html' with posts=posts %}
+  </div>
+
+  {% if page_obj.has_next %}
+  <div class="text-center mt-4">
+    <button id="load-more-btn" class="btn btn-outline-primary" data-next-page="{{ page_obj.next_page_number }}">تحميل المزيد</button>
+  </div>
+  {% endif %}
+</div>
+{# Inline interactive scripts kept inside the template so styles/behavior are self-contained #}
+<script>
+// Stagger animations: read data-stagger and apply inline style for CSS animation delay
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.full-post-card[data-stagger]').forEach(function(el){
+    var ms = parseInt(el.getAttribute('data-stagger') || '0', 10) * 40; // 40ms per index
+    el.style.animationDelay = ms + 'ms';
+  });
+
+  // Read-more toggles
+  document.querySelectorAll('.btn-readmore').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var id = btn.getAttribute('data-post-id');
+      var container = document.querySelector('.post-content[data-post-id="'+id+'"]');
+      if(!container) return;
+      var excerpt = container.querySelector('.excerpt');
+      var full = container.querySelector('.full-content');
+      if(full.style.display === 'none'){
+        full.style.display = '';
+        excerpt.style.display = 'none';
+        btn.textContent = 'قرأت';
+      } else {
+        full.style.display = 'none';
+        excerpt.style.display = '';
+        btn.textContent = 'اقرأ المزيد';
+      }
+    });
+  });
+
+  // Optimistic engage toggles (save/like) - purely client-side animation; persistence optional
+  function animateToggle(btn, active){
+    if(active){
+      btn.classList.add('active');
+      btn.style.transform = 'scale(1.06)';
+      setTimeout(function(){ btn.style.transform = ''; }, 220);
+    } else {
+      btn.classList.remove('active');
+    }
+  }
+
+  document.querySelectorAll('.btn-save').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var active = btn.getAttribute('aria-pressed') === 'true';
+      active = !active;
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      animateToggle(btn, active);
+      // TODO: POST to /api/posts/<id>/save/ to persist; fallback: keep optimistic state
+    });
+  });
+
+  // Load More - fetch next page fragment and append
+  var loadBtn = document.getElementById('load-more-btn');
+  if(loadBtn){
+    loadBtn.addEventListener('click', function(){
+      var next = loadBtn.getAttribute('data-next-page');
+      if(!next) return;
+      loadBtn.disabled = true;
+      var originalText = loadBtn.textContent;
+      loadBtn.textContent = 'جاري التحميل...';
+      fetch(window.location.pathname + '?page=' + encodeURIComponent(next), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(res){ if(!res.ok) throw new Error('Network'); return res.text(); })
+        .then(function(html){
+          // Parse fragment: server returns full page; we extract #cards-container and next button
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(html, 'text/html');
+          var newCards = doc.querySelectorAll('#cards-container .col-12');
+          var container = document.getElementById('cards-container');
+          newCards.forEach(function(node){
+            node.style.opacity = 0;
+            container.appendChild(node);
+            setTimeout(function(){ node.style.transition = 'opacity 360ms ease, transform 360ms'; node.style.opacity = 1; node.style.transform = 'translateY(0)'; }, 30);
+          });
+          // update or remove load more button
+          var newBtn = doc.getElementById('load-more-btn');
+          if(newBtn && newBtn.getAttribute('data-next-page')){
+            loadBtn.setAttribute('data-next-page', newBtn.getAttribute('data-next-page'));
+            loadBtn.disabled = false;
+            loadBtn.textContent = originalText;
+          } else {
+            loadBtn.remove();
+          }
+          // re-run readmore wiring for newly added items
+          if(typeof window === 'object'){
+            // very small rebind for new readmore and save buttons
+            document.querySelectorAll('.btn-readmore').forEach(function(b){ if(!b._bound){ b._bound = true; b.click = b.click; } });
+          }
+        })
+        .catch(function(){
+          loadBtn.disabled = false;
+          loadBtn.textContent = originalText;
+          alert('فشل تحميل المزيد، تحقق من اتصالك');
+        });
+    });
+  }
+});
+</script>
+
+{% endblock %}
+
+<script>
+// DEV TEST button behavior
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('dev-test-btn');
+  if(!btn) return;
+  btn.addEventListener('click', function(){
+    if(btn.dataset.toggled === '1'){
+      btn.textContent = 'DEV TEST';
+      btn.dataset.toggled = '0';
+    } else {
+      btn.textContent = 'Toggled ✔';
+      btn.dataset.toggled = '1';
+    }
+  });
+});
+</script>
+
+<script>
+// Demo comment form wiring for the static demo article
+document.addEventListener('DOMContentLoaded', function(){
+  var cbtn = document.getElementById('demo-comment-btn');
+  var cform = document.getElementById('demo-comment-form');
+  var submit = document.getElementById('demo-submit-comment');
+  var result = document.getElementById('demo-comment-result');
+  if(!cbtn || !cform) return;
+  cbtn.addEventListener('click', function(){
+    if(cform.style.display === 'none') cform.style.display = '';
+    else cform.style.display = 'none';
+  });
+  if(submit){
+    submit.addEventListener('click', function(e){
+      e.preventDefault();
+      // simple client-only feedback
+      result.style.display = '';
+      setTimeout(function(){ result.textContent = 'تم إرسال تعليقك (محليًا فقط)'; }, 200);
+    });
+  }
+});
+</script>
+
+<script>
+// Client-side search for posts by title (Fuse-enabled with highlighting and keyboard nav)
+document.addEventListener('DOMContentLoaded', function(){
+  var input = document.getElementById('postsSearch');
+  var clearBtn = document.getElementById('clearPostsSearch');
+  if(!input) return;
+  // small UI helper functions
+  function highlight(el, q){ if(!q) return; var re = new RegExp('(' + q.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + ')', 'ig'); var titleNode = el.querySelector('.card-title'); if(titleNode) titleNode.innerHTML = titleNode.textContent.replace(re, '<mark>$1</mark>'); var excerpt = el.querySelector('.excerpt'); if(excerpt) excerpt.innerHTML = excerpt.textContent.replace(re, '<mark>$1</mark>'); }
+  function clearHighlights(el){ var titleNode = el.querySelector('.card-title'); if(titleNode) titleNode.innerHTML = titleNode.textContent; var excerpt = el.querySelector('.excerpt'); if(excerpt) excerpt.innerHTML = excerpt.textContent; }
+
+  var cards = Array.prototype.slice.call(document.querySelectorAll('#cards-container .post-card'));
+  var index = cards.map(function(card, i){ return { id: i, title: card.getAttribute('data-title') || (card.querySelector('.card-title') && card.querySelector('.card-title').textContent) || '', desc: card.getAttribute('data-desc') || '' }; });
+  var useFuse = typeof Fuse !== 'undefined';
+  var fuse = null;
+  if (useFuse){ try{ fuse = new Fuse(index, { keys: ['title','desc'], includeMatches: true, threshold: 0.42, distance: 180, ignoreLocation: true, minMatchCharLength: 2 }); }catch(e){ fuse = null; useFuse = false; } }
+
+  function normalize(s){ return (s||'').toString().trim().toLowerCase(); }
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+  function snippetFromText(text, matchStart, matchEnd, pad){ pad = pad || 40; var start = Math.max(0, matchStart - pad); var end = Math.min(text.length, matchEnd + pad); var prefix = start > 0 ? '…' : ''; var suffix = end < text.length ? '…' : ''; var core = text.slice(start, end); var innerStart = matchStart - start; var innerEnd = innerStart + (matchEnd - matchStart) + 1; var before = escapeHtml(core.slice(0, innerStart)); var matchText = escapeHtml(core.slice(innerStart, innerEnd)); var after = escapeHtml(core.slice(innerEnd)); return prefix + before + '<mark>' + matchText + '</mark>' + after + suffix; }
+  function renderMultipleSnippets(text, indicesList){ if(!indicesList || !indicesList.length) return escapeHtml(text); var snippets = indicesList.map(function(pair){ return snippetFromText(text, pair[0], pair[1]); }); return snippets.join(' <span class="muted">…</span> '); }
+  function clearHighlights(el){ var titleNode = el.querySelector('.card-title'); if(titleNode) titleNode.innerHTML = titleNode.textContent; var excerpt = el.querySelector('.excerpt'); if(excerpt) excerpt.innerHTML = excerpt.textContent; }
+  function applyMatchToCard(card, q, matches){ var titleNode = card.querySelector('.card-title'); var excerpt = card.querySelector('.excerpt'); var title = card.getAttribute('data-title') || (titleNode && titleNode.textContent) || ''; var desc = card.getAttribute('data-desc') || ''; if(matches && matches.length){ var titleIndices = []; var descIndices = []; matches.forEach(function(m){ if(m.key === 'title' && m.indices && m.indices.length){ m.indices.forEach(function(pair){ titleIndices.push(pair); }); } if(m.key === 'desc' && m.indices && m.indices.length){ m.indices.forEach(function(pair){ descIndices.push(pair); }); } }); if(titleIndices.length && titleNode){ titleNode.innerHTML = renderMultipleSnippets(title, titleIndices); } else if(titleNode){ titleNode.innerHTML = escapeHtml(titleNode.textContent); } if(descIndices.length && excerpt){ excerpt.innerHTML = renderMultipleSnippets(desc, descIndices); } else if(excerpt){ excerpt.innerHTML = escapeHtml(excerpt.textContent); } return; }
+    if(q && q.length){ var qn = normalize(q); var ti = title.toLowerCase().indexOf(qn); if(ti !== -1 && titleNode){ titleNode.innerHTML = snippetFromText(title, ti, ti + qn.length - 1); } else if(titleNode) titleNode.innerHTML = escapeHtml(titleNode.textContent); var di = desc.indexOf(qn); if(di !== -1 && excerpt){ excerpt.innerHTML = snippetFromText(desc, di, di + qn.length - 1); } else if(excerpt) excerpt.innerHTML = escapeHtml(excerpt.textContent); } else { clearHighlights(card); } }
+  function debounce(fn, wait){ var t; return function(){ var args = arguments, ctx = this; clearTimeout(t); t = setTimeout(function(){ fn.apply(ctx, args); }, wait); }; }
+  function filter(){
+    var q = input.value.toString().trim();
+    if (useFuse && fuse && q.length > 0){
+      var results = fuse.search(q, { limit: 500 });
+      var matched = {};
+      results.forEach(function(r){ matched[r.item.id] = r.matches || []; });
+      var visible = 0;
+      cards.forEach(function(card, i){ var wrapper = card.closest('.col-12'); var show = matched.hasOwnProperty(i); if(wrapper) wrapper.style.display = show ? '' : 'none'; if(show){ visible++; clearHighlights(card); applyMatchToCard(card, q, matched[i]); } else { clearHighlights(card); } });
+      document.getElementById('postsCount').textContent = 'عرض ' + visible + ' من ' + cards.length;
+      return;
+    }
+    var qn = normalize(q); var visible = 0;
+    cards.forEach(function(card){ var wrapper = card.closest('.col-12'); var title = normalize(card.getAttribute('data-title') || (card.querySelector('.card-title') && card.querySelector('.card-title').textContent)); var desc = normalize(card.getAttribute('data-desc') || ''); var show = !qn || (title && title.indexOf(qn) !== -1) || (desc && desc.indexOf(qn) !== -1); if(wrapper) wrapper.style.display = show ? '' : 'none'; if(show){ visible++; clearHighlights(card); applyMatchToCard(card, qn, null); } else { clearHighlights(card); } });
+    document.getElementById('postsCount').textContent = 'عرض ' + visible + ' من ' + cards.length;
+  }
+  input.addEventListener('input', debounce(filter, 300));
+  if(clearBtn) clearBtn.addEventListener('click', function(){ input.value=''; input.focus(); filter(); });
+
+  // Keyboard navigation: arrow keys + Enter
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if (active === input && (e.key === 'ArrowDown' || e.key === 'ArrowRight')){ e.preventDefault(); var first = cards.find(function(c){ return c.offsetParent !== null; }); if(first) first.focus(); return; }
+    if (!active || !active.classList || !active.classList.contains('post-card')) return;
+    var visible = cards.filter(function(c){ return c.offsetParent !== null; });
+    var idx = visible.indexOf(active);
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight'){ e.preventDefault(); var next = visible[idx+1] || visible[0]; if(next) next.focus(); }
+    else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft'){ e.preventDefault(); var prev = visible[idx-1] || visible[visible.length-1]; if(prev) prev.focus(); }
+    else if (e.key === 'Enter'){ var link = active.querySelector('a[href]'); if(link) link.click(); }
+  });
+});
+</script>

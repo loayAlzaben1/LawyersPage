@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}تواصل معنا - موقع {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1>تواصل معنا</h1>
+    <p>الهاتف: <a href="tel:+962XXXXXXXXX">+962 XXXXXXXX</a> — <a href="https://wa.me/962XXXXXXXXX">دردشة واتساب</a></p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+            {% if form.name.errors %}<div class="text-danger">{{ form.name.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {% if form.email.errors %}<div class="text-danger">{{ form.email.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.phone.label_tag }}
+            {{ form.phone }}
+            {% if form.phone.errors %}<div class="text-danger">{{ form.phone.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.subject.label_tag }}
+            {{ form.subject }}
+            {% if form.subject.errors %}<div class="text-danger">{{ form.subject.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.message.label_tag }}
+            {{ form.message }}
+            {% if form.message.errors %}<div class="text-danger">{{ form.message.errors }}</div>{% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">إرسال الرسالة</button>
+    </form>
+</div>
+{% endblock %}

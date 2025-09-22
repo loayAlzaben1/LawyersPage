@@ -1,0 +1,71 @@
+{% load static %}
+{% for post in posts %}
+  <div class="col-12 d-flex">
+  {# compute a small stagger in milliseconds based on loop counter #}
+  <article class="blog-card post-card d-flex flex-column w-100 full-post-card fade-in-up" data-stagger="{{ forloop.counter0|add:0 }}" data-title="{{ post.title|lower }}" data-desc="{{ post.content|striptags|truncatechars:300|lower }}">
+      <header class="card-header">
+        <h1 class="card-title">{{ post.title }}</h1>
+      </header>
+
+  <div class="card-media" style="min-height:180px;display:flex;align-items:center;justify-content:center;background:transparent;">
+        {% if post.processed_og_image_medium or post.processed_og_image_large or post.processed_og_image_small %}
+          <img
+            {% if post.processed_og_image_medium %}
+              src="{{ post.processed_og_image_medium.url }}"
+            {% elif post.processed_og_image_large %}
+              src="{{ post.processed_og_image_large.url }}"
+            {% elif post.processed_og_image_small %}
+              src="{{ post.processed_og_image_small.url }}"
+            {% endif %}
+            srcset="{% if post.processed_og_image_small %}{{ post.processed_og_image_small.url }} 400w,{% endif %}{% if post.processed_og_image_medium %} {{ post.processed_og_image_medium.url }} 800w,{% endif %}{% if post.processed_og_image_large %} {{ post.processed_og_image_large.url }} 1200w{% endif %}"
+            sizes="(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
+            loading="lazy"
+            class="card-image"
+            alt="{{ post.title }}" style="width:100%;height:180px;object-fit:cover;border-radius:8px;">
+        {% elif post.featured_image %}
+          <img src="{{ post.featured_image.url }}" loading="lazy" class="card-image" alt="{{ post.title }}" style="width:100%;height:180px;object-fit:cover;border-radius:8px;">
+        {% else %}
+          <div class="img-placeholder" data-category="{{ post.category.name|default:'مقال' }}" style="width:100%;height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,0.02),rgba(255,255,255,0.02));color:var(--muted-text);border-radius:8px;">
+            <span class="placeholder-icon" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;background:var(--card-border);border-radius:50%;">
+              <!-- newspaper SVG -->
+              <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true"><path d="M0 2a2 2 0 012-2h10a2 2 0 012 2v12H2a2 2 0 01-2-2V2zm3 1h9v2H3V3zm0 3h9v7H3V6z"/></svg>
+            </span>
+            <span class="placeholder-cat" style="margin-top:6px;font-weight:700;">{{ post.category.name|default:'مقال' }}</span>
+          </div>
+        {% endif %}
+      </div>
+      </div>
+
+  <div class="card-body-custom flex-grow-1">
+        {# Show a short excerpt and keep full content hidden for read-more toggle #}
+        <div class="post-content" data-post-id="{{ post.id }}">
+          <div class="excerpt">{{ post.content|striptags|truncatechars:400 }}</div>
+          <div class="full-content" style="display:none">{{ post.content|safe }}</div>
+        </div>
+
+        <div class="meta small text-muted mt-3">
+          {% if post.author %}<div class="meta-author">{{ post.author.get_full_name|default:post.author.username }}</div>{% endif %}
+          {% if post.published_at %}<div class="meta-date">{{ post.published_at|date:"j M Y" }}</div>{% endif %}
+          {% if post.category %}<div class="meta-cat">{{ post.category.name }}</div>{% endif %}
+        </div>
+  <div class="engage-toolbar mt-3" style="display:flex;gap:8px;align-items:center;">
+    <button type="button" class="btn btn-sm btn-like" data-post-id="{{ post.id }}" aria-pressed="false" style="background:transparent;border:1px solid var(--card-border);color:var(--text);padding:6px 8px;border-radius:6px;display:flex;align-items:center;gap:8px">
+            <span class="icon-badge icon-gray" aria-hidden="true" style="width:30px;height:30px;font-size:14px;">
+              <!-- heart SVG -->
+              <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 2.748-.717-.737C5.6-.281 7.514 1.07 8 2.748z"/></svg>
+            </span>
+            <span class="count">{{ post.like_count|default:0 }}</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-save" data-post-id="{{ post.id }}" aria-pressed="false" style="background:transparent;border:1px solid var(--card-border);color:var(--text);padding:6px 8px;border-radius:6px;display:flex;align-items:center;gap:8px">
+            <span class="icon-badge icon-blue" aria-hidden="true" style="width:30px;height:30px;font-size:14px;">
+              <!-- bookmark SVG -->
+              <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M2 2v12l6-3 6 3V2z"/></svg>
+            </span>
+          </button>
+          <a href="{{ post.get_absolute_url }}" class="btn btn-sm btn-outline-secondary" style="padding:6px 10px;border-radius:6px;text-decoration:none;">تعليق</a>
+          <button type="button" class="btn btn-sm btn-readmore" data-post-id="{{ post.id }}" style="background:transparent;border:none;color:var(--brand);">اقرأ المزيد</button>
+        </div>
+      </div>
+    </article>
+  </div>
+{% endfor %}

@@ -1,0 +1,102 @@
+/* Blog card styles: responsive, centered image, light shadow */
+:root{
+  /* map blog-specific vars to global theme variables so blog.css adapts to theme */
+  --brand: var(--brand);
+  --text: var(--text);
+  --muted: var(--muted-text);
+  --radius: 10px;
+}
+.blog-card {
+  border: 1px solid var(--card-border);
+  box-shadow: 0 1px 6px var(--card-elev);
+  border-radius: 8px;
+  overflow: visible;
+  display: block;
+  width: 100%;
+  position: relative;
+  padding: 18px;
+  background: var(--card-bg);
+  color: var(--card-text-dark, var(--text));
+}
+/* hover effect: raise shadow and slight translate */
+.blog-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px var(--card-elev);
+  z-index: 20; /* float above siblings to avoid visual overlap */
+}
+.blog-card .card-title {
+  font-weight: 800;
+  font-size: 2rem;
+  color: var(--card-title-dark, var(--text)); /* title color adapts to theme */
+  margin: 0 0 12px 0;
+}
+.blog-card .card-media { display: block; width: 100%; margin-bottom: 12px; }
+.blog-card .card-media .card-image { display: block; width: 100%; height: auto; max-height: none; object-fit: contain; }
+.blog-card .card-body-custom { padding: 0; }
+.blog-card .post-content { font-size: 1.05rem; line-height: 1.9; color: var(--card-text-dark, var(--text)); }
+.blog-card .meta { margin-top: 18px; color: var(--muted); }
+@media (min-width: 992px) {
+  .blog-card .card-media .card-image { height: 220px; }
+}
+@media (max-width: 576px) {
+  .blog-card .card-title { font-size: 1.05rem; margin-top: 12px; }
+}
+
+/* centered stacked card wrapper */
+.blog-card-centered {
+  width: 100%;
+  max-width: 920px; /* limits the card width on large screens */
+  margin: 0 auto 18px auto; /* vertical gap between stacked cards */
+}
+
+/* ensure cards don't overlap when centered */
+.d-flex .blog-card { margin-bottom: 12px; }
+
+/* grid gap adjustments - rely on bootstrap .row.g-4 but ensure consistent card spacing */
+.row.g-4 > .col-12, .row.g-4 > .col-md-6, .row.g-4 > .col-lg-4 { display: block; }
+
+/* meta details */
+.blog-card .meta { font-size: 0.95rem; color: var(--muted); }
+.blog-card .meta .meta-author { font-weight: 700; color: var(--text); }
+
+/* placeholder image styles */
+.card-image[src$=".svg"] { background: var(--card-bg); }
+
+/* Hero article styles */
+.hero-article{ display:flex; gap:20px; align-items:flex-start; padding:18px; border-radius:var(--radius); border:1px solid var(--card-border); background:var(--card-bg); }
+.hero-media img{ width:420px; height:260px; object-fit:cover; border-radius:8px; }
+.hero-placeholder{ width:420px; height:260px; display:flex; align-items:center; justify-content:center; background:linear-gradient(90deg, var(--nav-bg), rgba(255,255,255,0.02)); color:var(--muted); border-radius:8px; font-weight:700; }
+.hero-body{ flex:1 }
+.hero-title{ font-size:2.4rem; font-weight:800; color:var(--text); margin:0 }
+.hero-meta{ color:var(--muted); margin-top:6px }
+.hero-excerpt{ margin-top:12px; color:var(--text) }
+.hero-actions .btn { margin-inline-start:8px }
+
+/* Image placeholder for list cards */
+.card-media { min-height: 180px; display:flex; align-items:center; justify-content:center; background:transparent; }
+.img-placeholder{ width:100%; height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(180deg, var(--card-bg), rgba(255,255,255,0.02)); color:var(--muted); border-radius:8px; }
+.img-placeholder .placeholder-icon{ font-size:28px; }
+.img-placeholder .placeholder-cat{ margin-top:6px; font-weight:700; }
+.card-media img.card-image{ width:100%; height:180px; object-fit:cover; border-radius:8px; }
+
+/* Engage toolbar */
+.engage-toolbar { display:flex; gap:8px; align-items:center }
+.engage-toolbar .btn-like, .engage-toolbar .btn-save{ background:transparent; border:1px solid var(--card-border); color:var(--text); padding:6px 8px; border-radius:6px }
+.engage-toolbar .btn-like[aria-pressed="true"]{ background:rgba(220,38,38,0.08); border-color:rgba(220,38,38,0.2) }
+.engage-toolbar .btn-save[aria-pressed="true"]{ background:rgba(13,110,253,0.06); border-color:rgba(13,110,253,0.16) }
+
+/* Icon badge for small decorative icons used in service cards and buttons */
+.icon-badge{ display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;font-size:18px;flex-shrink:0;transition:transform .18s ease, background-color .18s ease; }
+.icon-badge svg{ width:18px;height:18px;display:block; fill:currentColor; }
+.icon-badge:hover{ transform:scale(1.08); }
+.icon-blue{ background:rgba(13,110,253,0.12); color:var(--brand); }
+.icon-gray{ background:rgba(55,65,81,0.08); color:var(--muted); }
+.icon-gold{ background:linear-gradient(90deg, rgba(245,158,11,0.12), rgba(250,204,21,0.08)); color:var(--gold); }
+
+/* Slight focus ring for accessibility */
+.icon-badge:focus{ outline:3px solid rgba(13,110,253,0.12); outline-offset:2px }
+
+/* hover interaction polish in theme-dark: slightly brighten links/titles to indicate interactivity */
+.theme-dark .blog-card a:hover, .theme-dark .blog-card .card-title:hover, .theme-dark .hero-title a:hover{ color: var(--brand-deep); }
+.blog-card a{ color: var(--brand); }
+.blog-card a:hover{ color: var(--brand-deep); }

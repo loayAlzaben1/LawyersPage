@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% block title %}قضايا موكلة - {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<h2>قضايا موكلة ناجحة</h2>
+{% load num_filters %}
+<p class="small text-muted">إجمالي القضايا المعروضة: {{ count|thousand_sep }}</p>
+
+{# Filters #}
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+    <form method="get" id="cases-filters" style="display:flex;gap:8px;flex-wrap:wrap">
+        <label class="small">الفئة:</label>
+        <select name="category">
+            <option value="">كل الفئات</option>
+            {% for cat in categories %}
+                <option value="{{ cat.name }}" {% if active_category == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+        <label class="small">وسم:</label>
+        <select name="tag">
+            <option value="">كل الوسوم</option>
+            {% for t in tags %}
+                <option value="{{ t.name }}" {% if active_tag == t.name %}selected{% endif %}>{{ t.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn">تصفية</button>
+        {% if active_category or active_tag %}
+            <a href="?" class="btn btn-link">مسح الفلاتر</a>
+        {% endif %}
+    </form>
+    <div style="margin-inline-start:auto;min-width:220px">
+        <label for="casesSearch" class="sr-only">بحث القضايا</label>
+        <div class="input-group">
+            <input id="casesSearch" class="form-control" placeholder="ابحث عن قضية..." aria-label="ابحث عن قضية" />
+            <div class="input-group-append">
+                <button id="clearCasesSearch" class="btn btn-outline-secondary" type="button" aria-label="مسح البحث"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+            </div>
+        </div>
+            <div class="small text-muted mt-1" id="casesCount" aria-live="polite" style="min-height:1.2rem"></div>
+    </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+    {% for c in cases %}
+        {% with cat_class=c.category.name|default_if_none:''|slugify %}
+    <div class="card-like {% if cat_class %}card--cat-{{ cat_class }}{% endif %}" style="display:flex;gap:12px;align-items:flex-start;padding:12px;" data-title="{{ c.title|lower }}" data-desc="{{ c.summary|striptags|lower }}">
+            {% if c.image %}
+                <div style="flex:0 0 120px"><img src="{{ c.image.url }}" alt="{{ c.title }}" style="width:120px;height:80px;object-fit:cover;border-radius:6px;" loading="lazy"></div>
+            {% endif %}
+            <div style="flex:1">
+                <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
+                    <h4 style="margin:0"><a href="{% url 'core:case_detail' c.pk %}">{{ c.title }}</a></h4>
+                    <div class="small text-muted">{{ c.case_date|default:c.created_at.date }}</div>
+                </div>
+                <div class="small text-muted">{{ c.case_type }} • {{ c.outcome }} • {{ c.client_initials }}</div>
+                <p style="margin-top:8px">{{ c.summary|truncatechars:220 }}</p>
+                {% if c.documents.all %}
+                    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+                        {% for d in c.documents.all %}
+                            <a href="{{ d.file.url }}" target="_blank" class="badge-soft">{{ d.title|default:d.file.name }}</a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+                    {# mark button as liked if present in liked_cases context set #}
+                    {% if c.pk in liked_cases %}
+                        <button class="like-btn liked" data-case-id="{{ c.pk }}" aria-label="أعجبني" aria-pressed="true" title="أعجبني هذا">
+                            <i class="bi bi-heart" aria-hidden="true"></i>
+                            <span class="small">أعجبني</span>
+                            <span class="likes-count small" aria-hidden="true">{{ c.likes }}</span>
+                        </button>
+                    {% else %}
+                        <button class="like-btn" data-case-id="{{ c.pk }}" aria-label="أعجبني" aria-pressed="false" title="أعجبني هذا">
+                            <i class="bi bi-heart" aria-hidden="true"></i>
+                            <span class="small">أعجبني</span>
+                            <span class="likes-count small" aria-hidden="true">{{ c.likes }}</span>
+                        </button>
+                    {% endif %}
+                    <a class="btn btn-outline" href="{% url 'core:case_detail' c.pk %}">عرض التفاصيل</a>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+    {% endfor %}
+</div>
+
+{# No results friendly message #}
+{% if count == 0 %}
+    <div style="padding:18px;border-radius:8px;background:#fff;border:1px solid rgba(11,45,77,0.04);margin-top:12px">
+        <h3>لا توجد قضايا لعرضها بعد</h3>
+        <p class="small text-muted">نحن نقوم بتحديث صفحة القضايا باستمرار. يمكنك العودة لاحقًا أو التواصل معنا لعرض حالتك.</p>
+    </div>
+{% endif %}
+</div>
+
+{# Pagination controls #}
+{% if paginator and paginator.num_pages > 1 %}
+    <nav aria-label="صفحات القضايا" style="margin-top:16px">
+        <ul class="pagination">
+            {% if cases.has_previous %}
+                <li><a href="?page={{ cases.previous_page_number }}">السابق</a></li>
+            {% endif %}
+            {# Show a window of pages around current page #}
+            {% for p in page_numbers %}
+                {% if p == cases.number %}
+                    <li><a class="active">{{ p }}</a></li>
+                {% else %}
+                    <li><a href="?page={{ p }}">{{ p }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if cases.has_next %}
+                <li><a href="?page={{ cases.next_page_number }}">التالي</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Client-side fuzzy search (Fuse) + fallback substring filter for cases
+(function(){
+    var input = document.getElementById('casesSearch');
+    var clearBtn = document.getElementById('clearCasesSearch');
+    var container = document.querySelectorAll('.card-like');
+    if(!input) return;
+    var cards = Array.prototype.slice.call(container || []);
+    var index = cards.map(function(card, idx){ return { id: idx, title: card.getAttribute('data-title') || '', desc: card.getAttribute('data-desc') || '' }; });
+    var useFuse = typeof Fuse !== 'undefined';
+    var fuse = null;
+    if (useFuse){
+        try{
+            fuse = new Fuse(index, { keys: ['title','desc'], includeMatches: true, threshold: 0.45, distance: 200, ignoreLocation: true, minMatchCharLength: 2 });
+        } catch(e){ fuse = null; useFuse = false; }
+    }
+
+    function normalize(s){ return (s||'').toString().trim().toLowerCase(); }
+    function escapeHtml(s){ return s.replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+
+    function snippetFromText(text, matchStart, matchEnd, pad){
+        pad = pad || 30;
+        var start = Math.max(0, matchStart - pad);
+        var end = Math.min(text.length, matchEnd + pad);
+        var prefix = start > 0 ? '…' : '';
+        var suffix = end < text.length ? '…' : '';
+        var core = text.slice(start, end);
+        var innerStart = matchStart - start;
+        var innerEnd = innerStart + (matchEnd - matchStart) + 1;
+        var before = escapeHtml(core.slice(0, innerStart));
+        var matchText = escapeHtml(core.slice(innerStart, innerEnd));
+        var after = escapeHtml(core.slice(innerEnd));
+        return prefix + before + '<mark>' + matchText + '</mark>' + after + suffix;
+    }
+
+    function renderMultipleSnippets(text, indicesList){
+        if(!indicesList || !indicesList.length) return escapeHtml(text);
+        var snippets = indicesList.map(function(pair){ return snippetFromText(text, pair[0], pair[1]); });
+        return snippets.join(' <span class="muted">…</span> ');
+    }
+
+    function clearHighlights(el){
+        var titleNode = el.querySelector('h4'); if(titleNode) titleNode.innerHTML = titleNode.textContent;
+        var p = el.querySelector('p'); if(p) p.innerHTML = p.textContent;
+    }
+
+    function applyMatchToCard(card, q, matches){
+        var titleNode = card.querySelector('h4');
+        var p = card.querySelector('p');
+        var title = card.getAttribute('data-title') || '';
+        var desc = card.getAttribute('data-desc') || '';
+
+        if (matches && matches.length){
+            var titleIndices = [];
+            var descIndices = [];
+            matches.forEach(function(m){
+                if (m.key === 'title' && m.indices && m.indices.length){ m.indices.forEach(function(pair){ titleIndices.push(pair); }); }
+                if (m.key === 'desc' && m.indices && m.indices.length){ m.indices.forEach(function(pair){ descIndices.push(pair); }); }
+            });
+
+            if (titleIndices.length && titleNode){ titleNode.innerHTML = renderMultipleSnippets(title, titleIndices); }
+            else if (titleNode){ titleNode.innerHTML = escapeHtml(titleNode.textContent); }
+
+            if (descIndices.length && p){ p.innerHTML = renderMultipleSnippets(desc, descIndices); }
+            else if (p){ p.innerHTML = escapeHtml(p.textContent); }
+            return;
+        }
+
+        if (q && q.length){
+            var qn = normalize(q);
+            var ti = title.indexOf(qn);
+            if (ti !== -1 && titleNode){ titleNode.innerHTML = snippetFromText(title, ti, ti + qn.length - 1); }
+            else if (titleNode) titleNode.innerHTML = escapeHtml(titleNode.textContent);
+
+            var di = desc.indexOf(qn);
+            if (di !== -1 && p){ p.innerHTML = snippetFromText(desc, di, di + qn.length - 1); }
+            else if (p) p.innerHTML = escapeHtml(p.textContent);
+        } else {
+            clearHighlights(card);
+        }
+    }
+
+    function debounce(fn, wait){ var t; return function(){ var args = arguments, ctx = this; clearTimeout(t); t = setTimeout(function(){ fn.apply(ctx, args); }, wait); }; }
+
+    function filter(){
+        var q = input.value.toString().trim();
+        var visible = 0;
+        if (useFuse && fuse && q.length > 0){
+            var results = fuse.search(q, { limit: 200 });
+            var matched = {};
+            results.forEach(function(r){ matched[r.item.id] = r.matches || []; });
+            cards.forEach(function(card, i){ var show = matched.hasOwnProperty(i); card.style.display = show ? '' : 'none'; if(show){ visible++; clearHighlights(card); applyMatchToCard(card, q, matched[i]); } else { clearHighlights(card); } });
+            document.getElementById('casesCount').textContent = 'عرض ' + visible + ' من ' + cards.length;
+            return;
+        }
+
+        var qn = normalize(q);
+        cards.forEach(function(card){
+            var title = normalize(card.getAttribute('data-title'));
+            var desc = normalize(card.getAttribute('data-desc'));
+            var show = !qn || (title && title.indexOf(qn) !== -1) || (desc && desc.indexOf(qn) !== -1);
+            card.style.display = show ? '' : 'none';
+            if(show){ visible++; clearHighlights(card); applyMatchToCard(card, qn, null); } else { clearHighlights(card); }
+        });
+        document.getElementById('casesCount').textContent = 'عرض ' + visible + ' من ' + cards.length;
+    }
+    input.addEventListener('input', debounce(filter, 300));
+    if(clearBtn) clearBtn.addEventListener('click', function(){ input.value=''; input.focus(); filter(); });
+        // Keyboard navigation: up/down + Enter to open first available detail
+        document.addEventListener('keydown', function(e){
+            var active = document.activeElement;
+            // if focus is inside search input, allow arrow down to focus first card
+            if (active === input && (e.key === 'ArrowDown' || e.key === 'ArrowRight')){
+                e.preventDefault(); var first = cards.find(function(c){ return c.offsetParent !== null; }); if(first) first.focus(); return;
+            }
+            if (!active || !active.classList || !active.classList.contains('card-like')) return;
+            var visible = cards.filter(function(c){ return c.offsetParent !== null; });
+            var idx = visible.indexOf(active);
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight'){
+                e.preventDefault(); var next = visible[idx+1] || visible[0]; if(next) next.focus();
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft'){
+                e.preventDefault(); var prev = visible[idx-1] || visible[visible.length-1]; if(prev) prev.focus();
+            } else if (e.key === 'Enter'){
+                // open the detail link inside the card
+                var link = active.querySelector('a[href]'); if(link) link.click();
+            }
+        });
+})();
+</script>
+{% endblock %}

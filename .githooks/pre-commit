@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Ensuring scripts/*.sh are executable..."
+changed=0
+for f in scripts/*.sh; do
+  if [ -f "$f" ]; then
+    if [ ! -x "$f" ]; then
+      chmod +x "$f"
+      git update-index --add --chmod=+x "$f"
+      changed=1
+      echo "Made executable: $f"
+    fi
+  fi
+done
+
+if [ "$changed" -eq 1 ]; then
+  echo "Updated file modes; please re-stage any files if necessary."
+fi
+
+exit 0

@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: "refs/tags/v0.1.4"  # lightweight wrapper rev (will be updated as needed)
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+
+  - repo: https://github.com/psf/black
+    rev: stable
+    hooks:
+      - id: black
+        language_version: python3
+
+  - repo: local
+    hooks:
+      - id: ensure-scripts-executable
+        name: Ensure scripts/ are executable
+        entry: bash scripts/hooks/make_exec.sh
+        language: script
+        pass_filenames: false
+        files: ^scripts/.*\.sh$

@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}الرئيسية - موقع {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="hero text-center mb-4">
+    <h1>خدمات قانونية متخصصة بثقة ومهنية</h1>
+    <p>محامية أردنية بخبرة في تقديم استشارات وتمثيل قانوني شامل.</p>
+    <a class="btn primary-btn" href="/appointment/">احجز موعداً الآن</a>
+</div>
+
+{# Include lawyer cards if available #}
+{% if lawyers and lawyers|length > 0 %}
+    <section class="home-lawyers mb-4">
+        <h2 style="font-size:1.4rem;margin-bottom:12px">فريق المحاميات</h2>
+        {% include 'blog/_lawyer_cards.html' with lawyers=lawyers %}
+    </section>
+{% endif %}
+
+<section class="services-section mb-4">
+    <h3 style="margin-bottom:12px">خدماتنا</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;">
+        {% for s in services %}
+    <div class="service-card" style="flex:1 1 calc(33% - 16px);min-width:220px;">
+            <div>
+                <h4 style="margin:0 0 8px 0;font-size:1.05rem;display:flex;align-items:center;gap:10px">
+                                        {% if s.slug == 'consultations' %}
+                                                <span class="icon-badge icon-blue" aria-hidden="true" {% if forloop.counter == 1 %}style="animation-delay:0s"{% elif forloop.counter == 2 %}style="animation-delay:0.18s"{% elif forloop.counter == 3 %}style="animation-delay:0.36s"{% endif %}>
+                                                    <!-- headphone SVG -->
+                                                    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 1a7 7 0 00-7 7v3a2 2 0 002 2h1a1 1 0 001-1V8a1 1 0 00-1-1H3a5 5 0 0110 0h-1a1 1 0 00-1 1v4a1 1 0 001 1h1a2 2 0 002-2V8a7 7 0 00-7-7z"/></svg>
+                                                </span>
+                                        {% elif s.slug == 'cases' %}
+                                                <span class="icon-badge icon-gray" aria-hidden="true" {% if forloop.counter == 1 %}style="animation-delay:0s"{% elif forloop.counter == 2 %}style="animation-delay:0.18s"{% elif forloop.counter == 3 %}style="animation-delay:0.36s"{% endif %}>
+                                                    <!-- scales (justice) SVG -->
+                                                    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 .5a.5.5 0 01.5.5v1.11A4.5 4.5 0 0112.89 7H14a.5.5 0 010 1h-1.11A4.5 4.5 0 018.5 12.89V14a.5.5 0 01-1 0v-1.11A4.5 4.5 0 011.11 8H0a.5.5 0 010-1h1.11A4.5 4.5 0 017.5 2.11V1a.5.5 0 01.5-.5zM3.5 7a3.5 3.5 0 007 0H3.5z"/></svg>
+                                                </span>
+                                        {% elif s.slug == 'special' %}
+                                                <span class="icon-badge icon-gold" aria-hidden="true" {% if forloop.counter == 1 %}style="animation-delay:0s"{% elif forloop.counter == 2 %}style="animation-delay:0.18s"{% elif forloop.counter == 3 %}style="animation-delay:0.36s"{% endif %}>
+                                                    <!-- star SVG -->
+                                                    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 .25l1.93 4.43L14.75 5.9l-3.41 2.5.99 4.57L8 11.9 3.67 13l.99-4.57L1.25 5.9l4.82-.22L8 .25z"/></svg>
+                                                </span>
+                                        {% else %}
+                                                <span class="icon-badge icon-gray" aria-hidden="true" {% if forloop.counter == 1 %}style="animation-delay:0s"{% elif forloop.counter == 2 %}style="animation-delay:0.18s"{% elif forloop.counter == 3 %}style="animation-delay:0.36s"{% endif %}>
+                                                    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="8" cy="8" r="3"/></svg>
+                                                </span>
+                                        {% endif %}
+                                        <span>{{ s.title }}</span>
+                </h4>
+                <p style="margin:0;color:var(--muted-text)">{{ s.description|default:'وصف الخدمة' }}</p>
+            </div>
+            <div style="margin-top:12px;display:flex;justify-content:flex-end">
+                <a class="btn" href="/appointment/?service={{ s.slug }}" style="padding:8px 12px;border-radius:6px;background:var(--brand);color:var(--on-brand);text-decoration:none">اختر الخدمة</a>
+            </div>
+        </div>
+        {% empty %}
+        <p>لا توجد خدمات بعد.</p>
+        {% endfor %}
+    </div>
+</section>
+
+{# Counters (cases won, years experience) - use site_stats if available, else defaults #}
+<div style="margin-top:18px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap">
+    <a href="/cases/" style="text-decoration:none;color:inherit">
+    <div style="min-width:140px;background:var(--card-bg);padding:12px;border-radius:10px;border:1px solid var(--card-border);box-shadow:0 8px 20px rgba(11,45,77,0.03)" class="counter-card">
+        <div class="h2" style="font-size:1.6rem;font-weight:800;color:var(--brand-deep)" data-target="{{ site_stats.cases_won|default:50 }}">0</div>
+        <div class="small text-muted">قضايا موكلة ناجحة</div>
+    </div>
+    </a>
+    <div style="min-width:140px;background:var(--card-bg);padding:12px;border-radius:10px;border:1px solid var(--card-border);box-shadow:0 8px 20px rgba(11,45,77,0.03)" class="counter-card">
+        <div class="h2" style="font-size:1.6rem;font-weight:800;color:var(--brand-deep)" data-target="{{ site_stats.years_experience|default:12 }}">0</div>
+        <div class="small text-muted">سنوات من الخبرة</div>
+    </div>
+</div>
+
+{# Latest 3 blog posts preview #}
+{% if latest_posts and latest_posts|length > 0 %}
+    <section class="latest-posts mb-4">
+        <h3 style="margin-bottom:12px">أحدث المقالات</h3>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+            {% for p in latest_posts %}
+                <div style="flex:1 1 calc(33% - 12px);min-width:220px;" class="fade-in-up">
+                    <a href="{{ p.get_absolute_url }}" style="text-decoration:none;color:inherit">
+                        <div style="border:1px solid var(--card-border);padding:12px;border-radius:8px;background:var(--card-bg)">
+                            {% if p.processed_og_image_small %}
+                                <img src="{{ p.processed_og_image_small.url }}" alt="{{ p.title }}" style="width:100%;height:140px;object-fit:cover;border-radius:6px;margin-bottom:8px;" loading="lazy">
+                            {% elif p.featured_image %}
+                                <img src="{{ p.featured_image.url }}" alt="{{ p.title }}" style="width:100%;height:140px;object-fit:cover;border-radius:6px;margin-bottom:8px;" loading="lazy">
+                            {% endif %}
+                            <h4 style="margin:0 0 6px 0;font-size:1rem">{{ p.title|truncatechars:60 }}</h4>
+                            <div class="small text-muted">{{ p.published_at|date:'j M Y' }}</div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        <div style="margin-top:12px;text-align:left">
+            <a href="/blog/" class="btn btn-outline-secondary">عرض المزيد من المقالات</a>
+        </div>
+    </section>
+{% endif %}
+
+{# Testimonials (static fallback) #}
+<section class="testimonials mb-4" style="margin-top:18px">
+    <h3 style="margin-bottom:12px">آراء العملاء</h3>
+    <div class="testimonial-list" style="display:flex;flex-wrap:wrap;gap:12px;">
+    <div class="testimonial-item" style="flex:1 1 300px;padding:14px;border-radius:10px;border:1px solid var(--card-border);background:var(--card-bg)"> 
+            <div style="font-weight:700">أ. سارة</div>
+            <div class="small text-muted">★★★★★</div>
+            <div style="margin-top:8px">محامية مهنية وموثوقة — خدمات سريعة وواضحة</div>
+        </div>
+    <div class="testimonial-item" style="flex:1 1 300px;padding:14px;border-radius:10px;border:1px solid var(--card-border);background:var(--card-bg)"> 
+            <div style="font-weight:700">م. أحمد</div>
+            <div class="small text-muted">★★★★★</div>
+            <div style="margin-top:8px">دعمتنا خطوة بخطوة حتى حققنا نتيجة ممتازة</div>
+        </div>
+    <div class="testimonial-item" style="flex:1 1 300px;padding:14px;border-radius:10px;border:1px solid var(--card-border);background:var(--card-bg)"> 
+            <div style="font-weight:700">ر. ندى</div>
+            <div class="small text-muted">★★★★★</div>
+            <div style="margin-top:8px">شرح واضح ومتابعة شخصية طوال القضية</div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const counters = document.querySelectorAll('.counter-card [data-target]');
+    if(!counters || counters.length === 0) return;
+
+    function formatNumber(n){
+        return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+    function animateRAF(el, target, duration=900){
+        const start = performance.now();
+        const from = 0;
+        const tick = (now) => {
+            const elapsed = Math.min(1, (now - start) / duration);
+            const eased = easeOutCubic(elapsed);
+            const value = Math.floor(from + (target - from) * eased);
+            el.textContent = formatNumber(value);
+            if(elapsed < 1) requestAnimationFrame(tick);
+            else el.textContent = formatNumber(target);
+        };
+        requestAnimationFrame(tick);
+    }
+
+    const io = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if(entry.isIntersecting){
+                const targetEl = entry.target;
+                const numEl = targetEl.querySelector('[data-target]');
+                if(numEl){
+                    const target = parseInt(numEl.getAttribute('data-target') || '0', 10) || 0;
+                    animateRAF(numEl, target);
+                }
+                obs.unobserve(targetEl);
+            }
+        });
+    }, { threshold: 0.4 });
+
+    // Observe parent counter-card elements
+    document.querySelectorAll('.counter-card').forEach(card => io.observe(card));
+});
+</script>
+
+{% endblock %}

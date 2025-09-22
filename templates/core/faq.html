@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}الأسئلة الشائعة - موقع {{ SITE_NAME }}{% endblock %}
+
+{# JSON-LD FAQ schema for SEO: renders questions/answers available on the page #}
+{% block extra_meta %}
+  {% load faq_extras %}
+  <script type="application/ld+json">
+  {{ faqs|faq_jsonld|safe }}
+  </script>
+{% endblock %}
+
+{% block content %}
+<main class="container faq-page mt-3">
+  <h1 id="faq-heading">الأسئلة الشائعة</h1>
+
+  <div class="accordion" id="faqAccordion" role="list" aria-labelledby="faq-heading">
+    {% for item in faqs %}
+    <article class="card" id="faq-item-{{ forloop.counter }}" role="listitem">
+      <header class="card-header" id="heading{{ forloop.counter }}">
+        <h2 class="mb-0">
+          <button class="btn btn-link faq-toggle" type="button" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ forloop.counter }}" data-toggle="collapse" data-target="#collapse{{ forloop.counter }}" id="btn{{ forloop.counter }}">
+            <span class="faq-q">{{ item.q }}</span>
+          </button>
+          <a class="ml-2 text-muted" href="#faq-item-{{ forloop.counter }}" aria-label="Link to question">🔗</a>
+        </h2>
+      </header>
+      <div id="collapse{{ forloop.counter }}" class="collapse {% if forloop.first %}show{% endif %}" data-parent="#faqAccordion" aria-labelledby="heading{{ forloop.counter }}">
+        <div class="card-body">
+          {{ item.a|safe }}
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  <div class="mt-4">
+    <p class="small">لم تجد إجابتك؟ <a href="/contact/">تواصل معنا</a> أو <a href="/appointment/">احجز موعدًا</a>.</p>
+  </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Keyboard navigation for FAQ accordion
+(function(){
+  var container = document.querySelector('.faq-page');
+  if (!container) return;
+  var buttons = Array.prototype.slice.call(container.querySelectorAll('.faq-toggle'));
+  if (!buttons.length) return;
+
+  function focusIndex(i){
+    if (i < 0) i = buttons.length - 1;
+    if (i >= buttons.length) i = 0;
+    buttons[i].focus();
+  }
+
+  buttons.forEach(function(btn, idx){
+    btn.addEventListener('keydown', function(e){
+      var key = e.key || e.keyCode;
+      if (key === 'ArrowDown' || key === 'Down' || key === 40){
+        e.preventDefault(); focusIndex(idx + 1);
+      } else if (key === 'ArrowUp' || key === 'Up' || key === 38){
+        e.preventDefault(); focusIndex(idx - 1);
+      } else if (key === 'Home'){
+        e.preventDefault(); focusIndex(0);
+      } else if (key === 'End'){
+        e.preventDefault(); focusIndex(buttons.length - 1);
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

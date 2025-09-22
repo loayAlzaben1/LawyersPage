@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load faq_extras %}
+{% block title %}الخدمات - موقع {{ SITE_NAME }}{% endblock %}
+{% block extra_meta %}
+    {% services_jsonld services as services_json %}
+    <script type="application/ld+json">
+    {{ services_json|safe }}
+    </script>
+{% endblock %}
+{% block content %}
+<main class="container mt-4">
+    <header class="d-flex flex-column flex-md-row align-items-start justify-content-between mb-3">
+        <div>
+            <h1 class="h3 mb-1">الخدمات</h1>
+            <p class="small text-muted">اطلع على قائمة الخدمات القانونية التي نقدمها. يمكنك البحث أو تصفية النتائج بسرعة.</p>
+        </div>
+        <div class="mt-2 mt-md-0" style="min-width:220px;">
+            <label for="serviceSearch" class="sr-only">بحث الخدمات</label>
+            <div class="input-group">
+                <input id="serviceSearch" class="form-control" placeholder="ابحث عن خدمة..." aria-label="ابحث عن خدمة" />
+                <div class="input-group-append">
+                    <button id="clearSearch" class="btn btn-outline-secondary" type="button" aria-label="مسح البحث"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                </div>
+            </div>
+            <div class="small text-muted mt-1" id="servicesCount" aria-live="polite" style="min-height:1.2rem"></div>
+        </div>
+    </header>
+
+    {% if services %}
+    <section class="row" id="servicesGrid" role="list">
+        {% for s in services %}
+        <article class="col-12 col-md-6 col-lg-4 mb-3" role="listitem">
+            <div class="service-card h-100 d-flex flex-column" tabindex="0" data-title="{{ s.title|lower }}" data-desc="{{ s.description|striptags|lower }}">
+                <div class="d-flex align-items-start mb-2">
+                    <div class="icon-badge icon-blue mr-3" aria-hidden="true">
+                        <i class="bi bi-briefcase-fill" style="font-size:18px"></i>
+                    </div>
+                    <h4 class="mb-0">{{ s.title }}</h4>
+                </div>
+                <p class="mt-2 mb-3">{{ s.description|truncatechars:220 }}</p>
+                <div class="mt-auto d-flex justify-content-between align-items-center">
+                    <a href="/appointment/?service={{ s.slug }}" class="btn appointment-cta" aria-label="حجز موعد لـ {{ s.title }}">حجز موعد</a>
+                    <a href="#service-{{ forloop.counter }}" class="text-muted small permalink" aria-label="رابط الخدمة">🔗</a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </section>
+    {% else %}
+        <p class="lead">لا توجد خدمات بعد.</p>
+    {% endif %}
+</main>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Client-side fuzzy search (Fuse) + fallback substring filter for services
+(function(){
+    var input = document.getElementById('serviceSearch');
+    var clearBtn = document.getElementById('clearSearch');
+    var grid = document.getElementById('servicesGrid');
+    if (!input || !grid) return;
+
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.service-card'));
+    // Build an index for Fuse or fallback to simple substring matching
+    var index = cards.map(function(card, idx){
+        return { id: idx, title: card.getAttribute('data-title') || '', desc: card.getAttribute('data-desc') || '' };
+    });
+
+    var useFuse = typeof Fuse !== 'undefined';
+    var fuse = null;
+    if (useFuse){
+        try{
+            // Tuned options: ignoreLocation for languages where matches may occur anywhere, larger distance
+            fuse = new Fuse(index, {
+                keys: ['title', 'desc'],
+                includeMatches: true,
+                threshold: 0.45,
+                distance: 200,
+                ignoreLocation: true,
+                minMatchCharLength: 2
+            });
+        }catch(e){ fuse = null; useFuse = false; }
+    }
+
+    function normalize(s){ return (s||'').toString().trim().toLowerCase(); }
+
+    function escapeHtml(s){ return s.replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+
+    function snippetFromText(text, matchStart, matchEnd, pad){
+        pad = pad || 30;
+        var start = Math.max(0, matchStart - pad);
+        var end = Math.min(text.length, matchEnd + pad);
+        var prefix = start > 0 ? '…' : '';
+        var suffix = end < text.length ? '…' : '';
+        var core = text.slice(start, end);
+        // adjust indices for core
+        var innerStart = matchStart - start;
+        var innerEnd = innerStart + (matchEnd - matchStart) + 1;
+        // wrap the matched part with mark
+        var escaped = escapeHtml(core);
+        var before = escapeHtml(core.slice(0, innerStart));
+        var matchText = escapeHtml(core.slice(innerStart, innerEnd));
+        var after = escapeHtml(core.slice(innerEnd));
+        return prefix + before + '<mark>' + matchText + '</mark>' + after + suffix;
+    }
+
+    function clearHighlights(el){
+        var titleNode = el.querySelector('h4'); if(titleNode) titleNode.innerHTML = titleNode.textContent;
+        var p = el.querySelector('p'); if(p) p.innerHTML = p.textContent;
+    }
+
+    function renderMultipleSnippets(text, indicesList){
+        // indicesList is array of [start,end] pairs. We'll build snippets around each and join with ellipses.
+        if(!indicesList || !indicesList.length) return escapeHtml(text);
+        var snippets = indicesList.map(function(pair){
+            return snippetFromText(text, pair[0], pair[1]);
+        });
+        return snippets.join(' <span class="muted">…</span> ');
+    }
+
+    function applyMatchToCard(card, q, matches){
+        // matches: Fuse-style array or null. We'll prefer matches if available, otherwise fallback to substring snippet
+        var titleNode = card.querySelector('h4');
+        var p = card.querySelector('p');
+        var title = card.getAttribute('data-title') || '';
+        var desc = card.getAttribute('data-desc') || '';
+
+        if (matches && matches.length){
+            // collect all indices for title and desc separately
+            var titleIndices = [];
+            var descIndices = [];
+            matches.forEach(function(m){
+                if (m.key === 'title' && m.indices && m.indices.length){
+                    m.indices.forEach(function(pair){ titleIndices.push(pair); });
+                }
+                if (m.key === 'desc' && m.indices && m.indices.length){
+                    m.indices.forEach(function(pair){ descIndices.push(pair); });
+                }
+            });
+
+            if (titleIndices.length && titleNode){
+                titleNode.innerHTML = renderMultipleSnippets(title, titleIndices);
+            } else if (titleNode){
+                titleNode.innerHTML = escapeHtml(titleNode.textContent);
+            }
+
+            if (descIndices.length && p){
+                p.innerHTML = renderMultipleSnippets(desc, descIndices);
+            } else if (p){
+                p.innerHTML = escapeHtml(p.textContent);
+            }
+            return;
+        }
+
+        // fallback: simple substring snippet highlight (first occurrence remains)
+        if (q && q.length){
+            var qn = normalize(q);
+            var ti = title.indexOf(qn);
+            if (ti !== -1 && titleNode){ titleNode.innerHTML = snippetFromText(title, ti, ti + qn.length - 1); }
+            else if (titleNode) titleNode.innerHTML = escapeHtml(titleNode.textContent);
+
+            var di = desc.indexOf(qn);
+            if (di !== -1 && p){ p.innerHTML = snippetFromText(desc, di, di + qn.length - 1); }
+            else if (p) p.innerHTML = escapeHtml(p.textContent);
+        } else {
+            clearHighlights(card);
+        }
+    }
+
+    // debounce helper
+    function debounce(fn, wait){ var t; return function(){ var args = arguments, ctx = this; clearTimeout(t); t = setTimeout(function(){ fn.apply(ctx, args); }, wait); }; }
+
+    function filter(){
+        var q = input.value.toString().trim();
+        var visibleCount = 0;
+
+        if (useFuse && fuse && q.length > 0){
+            var results = fuse.search(q, { limit: 100 });
+            var matched = {};
+            results.forEach(function(r){ matched[r.item.id] = r.matches || []; });
+
+            cards.forEach(function(card, i){
+                var show = matched.hasOwnProperty(i);
+                card.closest('[role="listitem"]').style.display = show ? '' : 'none';
+                if (show){ visibleCount++; clearHighlights(card); applyMatchToCard(card, q, matched[i]); }
+                else { clearHighlights(card); }
+            });
+            document.getElementById('servicesCount').textContent = 'عرض ' + visibleCount + ' من ' + cards.length;
+            return;
+        }
+
+        // substring fallback
+        var qn = normalize(q);
+        cards.forEach(function(card){
+            var title = normalize(card.getAttribute('data-title'));
+            var desc = normalize(card.getAttribute('data-desc'));
+            var show = !qn || (title && title.indexOf(qn) !== -1) || (desc && desc.indexOf(qn) !== -1);
+            card.closest('[role="listitem"]').style.display = show ? '' : 'none';
+            if(show){ visibleCount++; clearHighlights(card); applyMatchToCard(card, qn, null); }
+            else { clearHighlights(card); }
+        });
+        document.getElementById('servicesCount').textContent = 'عرض ' + visibleCount + ' من ' + cards.length;
+    }
+
+    input.addEventListener('input', debounce(filter, 300));
+    clearBtn.addEventListener('click', function(){ input.value=''; input.focus(); filter(); });
+
+    // Keyboard navigation: arrow up/down to move between visible cards, Enter to open appointment
+    document.addEventListener('keydown', function(e){
+        var active = document.activeElement;
+        if (!active || !active.classList.contains('service-card')) return;
+        var visible = cards.filter(function(c){ return c.closest('[role="listitem"]').offsetParent !== null; });
+        var idx = visible.indexOf(active);
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight'){
+            e.preventDefault(); var next = visible[idx+1] || visible[0]; if(next) next.focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft'){
+            e.preventDefault(); var prev = visible[idx-1] || visible[visible.length-1]; if(prev) prev.focus();
+        } else if (e.key === 'Enter'){
+            var btn = active.querySelector('.appointment-cta'); if(btn) btn.click();
+        }
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}مقالات ونصائح - موقع {{ SITE_NAME }}{% endblock %}
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'blog/css/blog.css' %}">
+    <script src="{% static 'blog/js/readmore.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<h2>مقالات ونصائح</h2>
+{% block extra_meta %}
+    {% if posts and posts|length > 0 %}
+        {% with first=posts.0 %}
+            {% if first.processed_og_image_large %}
+                <meta property="og:image" content="{{ first.processed_og_image_large.url }}">
+                <meta name="twitter:image" content="{{ first.processed_og_image_large.url }}">
+            {% elif first.og_image %}
+                <meta property="og:image" content="{{ first.og_image.url }}">
+                <meta name="twitter:image" content="{{ first.og_image.url }}">
+            {% else %}
+                <meta property="og:image" content="{% static 'img/og-image.png' %}">
+                <meta name="twitter:image" content="{% static 'img/og-image.png' %}">
+            {% endif %}
+            <meta property="og:title" content="مقالات - {{ SITE_NAME }}">
+            <meta property="og:description" content="{{ SITE_DESCRIPTION }}">
+            <meta property="og:url" content="{{ request.build_absolute_uri }}">
+            <meta name="twitter:title" content="مقالات - {{ SITE_NAME }}">
+            <meta name="twitter:description" content="{{ SITE_DESCRIPTION }}">
+            <meta name="twitter:url" content="{{ request.build_absolute_uri }}">
+        {% endwith %}
+    {% endif %}
+{% endblock %}
+<div class="container">
+    <div class="row g-4">
+                    {% comment %} Prefer processed OG images for responsive srcset, fallback to featured_image, else placeholder {% endcomment %}
+                                        {% if p.processed_og_image_large or p.processed_og_image_medium or p.processed_og_image_small %}
+                                                                        <img
+                                                    {% if p.processed_og_image_medium %}
+                                                                                src="{{ p.processed_og_image_medium.url }}"
+                                                    {% elif p.processed_og_image_large %}
+                                                                                src="{{ p.processed_og_image_large.url }}"
+                                                    {% elif p.processed_og_image_small %}
+                                                                                src="{{ p.processed_og_image_small.url }}"
+                                                    {% endif %}
+                                                                            srcset="{% if p.processed_og_image_small %}{{ p.processed_og_image_small.url }} 400w,{% endif %}{% if p.processed_og_image_medium %} {{ p.processed_og_image_medium.url }} 800w,{% endif %}{% if p.processed_og_image_large %} {{ p.processed_og_image_large.url }} 1200w{% endif %}"
+                                                                            sizes="(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
+                                                                            loading="lazy"
+                                                    class="card-image"
+                                                    alt="{{ p.title }}">
+                    {% elif p.featured_image %}
+                        <img src="{{ p.featured_image.url }}" loading="lazy" class="card-image" alt="{{ p.title }}">
+                    {% else %}
+                        {# no image: placeholder removed per request #}
+                    {% endif %}
+        {% for p in posts %}
+            <div class="col-12 d-flex">
+                <article class="blog-card w-100 full-post-card">
+                    <h1 class="card-title">{{ p.title }}</h1>
+                    {% if p.processed_og_image_large or p.processed_og_image_medium or p.processed_og_image_small %}
+                        <img src="{% if p.processed_og_image_medium %}{{ p.processed_og_image_medium.url }}{% elif p.processed_og_image_large %}{{ p.processed_og_image_large.url }}{% else %}{{ p.processed_og_image_small.url }}{% endif %}" loading="lazy" class="card-image" alt="{{ p.title }}">
+                    {% elif p.featured_image %}
+                        <img src="{{ p.featured_image.url }}" loading="lazy" class="card-image" alt="{{ p.title }}">
+                    {% else %}
+                        <img src="{% static 'blog/img/placeholder-400x250.svg' %}" loading="lazy" class="card-image" alt="لا توجد صورة">
+                    {% endif %}
+
+                    <div class="card-body-custom">
+                        <div class="post-content">{{ p.content|safe }}</div>
+                        <div class="meta small text-muted mt-3">
+                            {% if p.author %}<div class="meta-author">{{ p.author.get_full_name|default:p.author.username }}</div>{% endif %}
+                            {% if p.published_at %}<div class="meta-date">{{ p.published_at|date:"j M Y" }}</div>{% endif %}
+                            {% if p.category %}<div class="meta-cat">{{ p.category.name }}</div>{% endif %}
+                        </div>
+                    </div>
+                </article>
+            </div>
+        {% empty %}
+            <p>لا توجد مقالات بعد.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

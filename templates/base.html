@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}موقع {{ SITE_NAME }}{% endblock %}</title>
+  <meta name="description" content="{{ SITE_DESCRIPTION }}">
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="shortcut icon" href="{% static 'img/favicon.svg' %}">
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  {% if post %}
+    {% if post.title %}
+      <meta property="og:title" content="{{ post.title }}">
+    {% else %}
+      <meta property="og:title" content="{{ SITE_NAME }}">
+    {% endif %}
+  {% with content=post.content %}
+      {% if content %}
+        <meta property="og:description" content="{{ content|striptags|truncatechars:160 }}">
+      {% else %}
+        <meta property="og:description" content="{{ SITE_DESCRIPTION }}">
+      {% endif %}
+    {% endwith %}
+    {% if post.processed_og_image_large %}
+      <meta property="og:image" content="{{ post.processed_og_image_large.url }}">
+    {% elif post.og_image %}
+      <meta property="og:image" content="{{ post.og_image.url }}">
+    {% else %}
+      <meta property="og:image" content="{% static 'img/og-image.png' %}">
+    {% endif %}
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  {% else %}
+    <meta property="og:title" content="{{ SITE_NAME }}">
+    <meta property="og:description" content="{{ SITE_DESCRIPTION }}">
+    <meta property="og:image" content="{% static 'img/og-image.png' %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  {% endif %}
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  {% if post %}
+    {% if post.title %}
+      <meta name="twitter:title" content="{{ post.title }}">
+    {% else %}
+      <meta name="twitter:title" content="{{ SITE_NAME }}">
+    {% endif %}
+  {% with content=post.content %}
+      {% if content %}
+        <meta name="twitter:description" content="{{ content|striptags|truncatechars:160 }}">
+      {% else %}
+        <meta name="twitter:description" content="{{ SITE_DESCRIPTION }}">
+      {% endif %}
+    {% endwith %}
+    {% if post.processed_og_image_large %}
+      <meta name="twitter:image" content="{{ post.processed_og_image_large.url }}">
+    {% elif post.og_image %}
+      <meta name="twitter:image" content="{{ post.og_image.url }}">
+    {% else %}
+      <meta name="twitter:image" content="{% static 'img/og-image.png' %}">
+    {% endif %}
+    <meta name="twitter:url" content="{{ request.build_absolute_uri }}">
+  {% else %}
+    <meta name="twitter:title" content="{{ SITE_NAME }}">
+    <meta name="twitter:description" content="{{ SITE_DESCRIPTION }}">
+    <meta name="twitter:image" content="{% static 'img/og-image.png' %}">
+    <meta name="twitter:url" content="{{ request.build_absolute_uri }}">
+  {% endif %}
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  <link rel="alternate" href="{{ request.build_absolute_uri }}" hreflang="ar">
+  <link rel="alternate" href="{{ request.build_absolute_uri }}" hreflang="x-default">
+  {% block extra_meta %}{% endblock %}
+  <!-- Google Font Tajawal -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap RTL CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons (centralized icon library) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- local site css -->
+  <link href="{% static 'css/site.css' %}" rel="stylesheet">
+  <script>
+    // Early theme bootstrap: do NOT add any class when there's no saved selection (so default CSS :root = light).
+    // If the user explicitly saved 'dark' we apply .theme-dark early. If the user saved 'auto', we apply
+    // .theme-dark only when the OS preference is dark; otherwise we leave no class (light by default).
+    (function(){
+      try{
+        var key = 'site-theme';
+        var saved = null;
+        try { saved = localStorage.getItem(key); } catch(e) { saved = null; }
+        var root = document.documentElement;
+        if (saved === 'dark'){
+          root.classList.add('theme-dark');
+        } else if (saved === 'auto'){
+          // only apply dark class early if OS prefers dark
+          try{
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){ root.classList.add('theme-dark'); }
+          }catch(e){}
+        } else {
+          // saved === 'light' or null -> leave NO class (light styles are the default via :root)
+        }
+      }catch(e){}
+    })();
+  </script>
+  <style>
+    /* Core theme variables (light as default) */
+    :root{
+      --bg: #ffffff;
+      --text: #0b1220;
+      --muted-text: #475569;
+      --card-bg: #ffffff;
+      --card-elev: rgba(11,45,77,0.04);
+      --nav-bg: #f3f6fb;
+      --brand-deep: #0b3d91;
+      --brand: #0d6efd;
+      --like-color: #e11d48;
+      --appointment-from: #ff5a5f;
+      --appointment-to: #ff7a66;
+      --on-brand: #ffffff;
+      --card-border: rgba(11,45,77,0.04);
+      --danger: #dc2626;
+      --danger-contrast: #ffffff;
+    }
+
+    /* Light theme variables as the default on :root (no class means light) */
+    :root{
+      --bg: #ffffff;
+      --text: #0b1220;
+      --muted-text: #475569;
+      --card-bg: #ffffff;
+      --card-elev: rgba(11,45,77,0.04);
+      --nav-bg: #f3f6fb;
+      --brand-deep: #0b3d91;
+      --brand: #0d6efd;
+      --like-color: #e11d48;
+      --appointment-from: #ff5a5f;
+      --appointment-to: #ff7a66;
+      --on-brand: #ffffff;
+      --card-border: rgba(11,45,77,0.04);
+      --danger: #dc2626;
+      --danger-contrast: #ffffff;
+    }
+
+    /* Dark theme overrides (applied when .theme-dark is present on root) */
+    .theme-dark{
+      --bg: #1e1e1e; /* softer dark background for better legibility */
+      --text: #ffffff;
+      --muted-text: #c9c9c9;
+      --card-bg: #232323; /* slightly lighter for cards compared to page bg */
+      --card-elev: rgba(0,0,0,0.5);
+      --nav-bg: #151515;
+      --brand-deep: #cfe1ff;
+      --brand: #90b6ff;
+      --like-color: #ff7b94;
+      --appointment-from: #ff6b6b;
+      --appointment-to: #ff8b7a;
+      --on-brand: #0b1220;
+      --card-border: rgba(255,255,255,0.04);
+      --danger: #ff6b6b;
+      --danger-contrast: #121212;
+      /* Card text variables for clearer control */
+      --card-text-dark: #f1f1f1;
+      --card-title-dark: #fbfbfb;
+    }
+
+    /* Card-specific night-mode polish
+       - ensure strong readable text on dark cards
+       - make titles slightly brighter than body text
+       - ensure buttons and badges remain legible
+       - smooth transitions for color/background-color
+    */
+    .card, .card-like, .post-card, .service-card, .lawyer-card, .form-card, .comment{
+      transition: color .3s ease, background-color .3s ease, border-color .3s ease;
+    }
+
+    /* In dark mode make card text bright and clear */
+    .theme-dark .card, .theme-dark .card-like, .theme-dark .post-card, .theme-dark .service-card, .theme-dark .lawyer-card, .theme-dark .form-card, .theme-dark .comment{
+      color: var(--card-text-dark); /* bright body text inside cards */
+      background: var(--card-bg);
+      border-color: var(--card-border);
+    }
+
+    /* Card titles slightly brighter and more prominent */
+    .theme-dark .card-title, .theme-dark .card .card-title, .theme-dark .card-like .card-title{
+      color: var(--card-title-dark); /* slightly lighter than body */
+      font-weight:700;
+    }
+
+    /* Card text (paragraphs inside cards) slightly less bright than titles */
+    .theme-dark .card p, .theme-dark .card .card-text, .theme-dark .post-card .post-content p, .theme-dark .service-card p{
+      color: var(--card-text-dark);
+    }
+
+    /* Ensure card buttons use on-brand text color and remain legible on dark backgrounds */
+    /* Buttons and links inside cards should be light and legible */
+    .theme-dark .card .btn, .theme-dark .card .btn-primary, .theme-dark .card .primary-btn, .theme-dark .card .service-card .btn,
+    .theme-dark .post-card .btn, .theme-dark .service-card .btn{
+      color: var(--card-title-dark);
+      transition: color .3s ease, background-color .3s ease;
+    }
+
+    /* Badges, links, and small helpers inside cards should maintain contrast */
+    .theme-dark .badge-soft, .theme-dark .card .badge, .theme-dark .likes-count, .theme-dark .meta{
+      color: var(--muted-text);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .theme-dark a{ color: var(--brand); }
+    .theme-dark a:hover{ color: var(--brand-deep); }
+
+    /* FAQ-style overrides requested by user: make card text and buttons black in theme-dark, headings lighter */
+    .theme-dark .card, .theme-dark .card-like, .theme-dark .post-card, .theme-dark .service-card, .theme-dark .lawyer-card, .theme-dark .form-card, .theme-dark .comment {
+      color: #000000;
+      background: var(--card-bg);
+      border-color: var(--card-border);
+    }
+
+    .theme-dark .btn, .theme-dark .btn-primary, .theme-dark .primary-btn, .theme-dark .service-card .btn {
+      color: #000000;
+      transition: color .3s ease, background-color .3s ease;
+    }
+
+    /* Headings for FAQ style */
+    h1,h2,h3,h4{ color: #e1e1e1; margin-top:0 }
+
+  /* Scoped FAQ page styles (.faq-page) - keeps FAQ visuals isolated */
+  .faq-page { padding-bottom: 2rem; }
+  .faq-page .card { border:1px solid var(--card-border); background:var(--card-bg); color:var(--text); border-radius:10px; box-shadow:0 6px 18px var(--card-elev); margin-bottom:12px; }
+  .faq-page .card-header{ background:transparent; border-bottom:none; padding:0; }
+  .faq-page .faq-toggle{ display:flex; align-items:center; justify-content:space-between; width:100%; text-align:right; padding:14px 12px; font-size:1.06rem; color:inherit; background:transparent; border:none }
+  .faq-page .faq-toggle .faq-q{ font-weight:700; }
+  .faq-page .card-body{ padding:14px 12px; color:inherit; }
+  .faq-page .card a.permalink, .faq-page .card .permalink{ color:var(--muted-text); text-decoration:none; margin-inline-start:8px }
+  .faq-page .card a.permalink:hover{ color:var(--brand); }
+
+  /* In Night mode, FAQ page cards should use the card text variables for clarity */
+  .theme-dark .faq-page .card{ color: var(--card-text-dark); background: var(--card-bg); border-color: var(--card-border); }
+  .theme-dark .faq-page .faq-toggle{ color: var(--card-title-dark); }
+  .theme-dark .faq-page .card a.permalink{ color: rgba(255,255,255,0.55); }
+
+  /* Focus and keyboard friendly styles */
+  .faq-page .faq-toggle:focus{ outline:3px solid rgba(13,110,253,0.12); outline-offset:3px; border-radius:6px }
+  .faq-page .faq-toggle[aria-expanded="true"] .faq-q{ text-decoration:underline; }
+
+    body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); transition: background-color .32s ease, color .28s ease; }
+    .hero { background: linear-gradient(180deg, rgba(250,250,250,0.02), rgba(255,255,255,0.02)); padding: 2rem 1rem; }
+    .primary-btn { background: var(--brand); color: #fff; }
+  </style>
+  <style>
+    /* Micro-interactions and global polish */
+    .btn, .like-btn { transition: transform .16s cubic-bezier(.2,.9,.2,1), box-shadow .18s ease, background-color .12s ease, color .12s ease; }
+
+    /* Smooth image hover for galleries and media */
+    img{ transition: transform .28s cubic-bezier(.22,.9,.27,1), filter .18s ease; }
+    .card-like img, .lawyer-media img, .post-content img{ border-radius:8px; }
+    .card-like img:hover{ transform:scale(1.03); }
+
+    /* Subtle badge bounce on load */
+    .badge-soft{ animation:badgeIn .5s cubic-bezier(.2,.85,.32,1); }
+    @keyframes badgeIn{ from{ transform:translateY(6px) scale(.98); opacity:0 } to{ transform:none; opacity:1 } }
+
+    /* Button ripple (progressive enhancement) */
+    .ripple{ position:relative; overflow:hidden; }
+    .ripple .ripple-circle{ position:absolute; border-radius:50%; background:rgba(255,255,255,0.22); transform:scale(0); opacity:0.9; pointer-events:none }
+
+  /* Tiny focus halo for interactive icons */
+  .like-btn:focus-visible, .btn:focus-visible{ box-shadow:0 8px 24px rgba(11,45,77,0.08), 0 0 0 3px rgba(13,110,253,0.10); transform:translateY(-1px) scale(1.01) }
+  </style>
+  <style>
+    /* Legal/consultation palette and refined inline styles
+       Colors chosen to feel professional, trustworthy and calm:
+       - Deep navy for primary actions
+       - Soft blue accents for consultations
+       - Muted gray for ordinary items
+       - Warm gold for featured / premium
+    */
+    :root{
+      --nav-bg: #f3f6fb;
+      --brand-deep: #0b3d91; /* deep navy */
+      --brand: #0d6efd; /* accent blue */
+      --muted:#6b7280;
+      --gold:#b8860b;
+      --card-bg: #ffffff;
+      --on-brand: #ffffff; /* text on brand-colored buttons */
+      --card-border: rgba(11,45,77,0.04);
+    }
+
+    /* gentle float animation for icons */
+    @keyframes floaty { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
+
+    /* Icon badge (circular) used across the homepage */
+    .icon-badge{ display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;font-size:18px;flex-shrink:0;transition:transform .18s ease, background-color .18s ease, box-shadow .18s ease; animation:floaty 4.5s ease-in-out infinite; box-shadow: 0 2px 6px rgba(11,45,77,0.04); }
+    .icon-badge svg{ width:20px;height:20px;display:block; }
+  .icon-badge{ will-change:transform; }
+  .icon-badge:hover{ transform:translateY(-6px) scale(1.06); box-shadow:0 12px 30px rgba(11,45,77,0.09) }
+
+    /* color variants */
+    .icon-blue{ background:rgba(13,110,253,0.10); color:var(--brand); }
+    .icon-gray{ background:rgba(99,102,106,0.06); color:#374151; }
+    .icon-gold{ background:linear-gradient(90deg, rgba(184,134,11,0.10), rgba(250,204,21,0.06)); color:var(--gold); }
+
+    /* Service card styling (inline controls) */
+    .service-card{ border:1px solid rgba(11,45,77,0.04);border-radius:10px;padding:20px;background:var(--card-bg);display:flex;flex-direction:column;justify-content:space-between;transition:transform .18s ease,box-shadow .18s ease, border-color .18s ease; }
+    .service-card h4{ display:flex;align-items:center;gap:12px;margin:0 0 8px 0;font-size:1.06rem;color:var(--brand-deep); }
+  .service-card p{ margin:0;color:var(--muted-text) }
+  .service-card .btn{ background:linear-gradient(180deg,var(--brand),#0b61d6); color:var(--on-brand);border:none }
+    .service-card:hover{ transform:translateY(-8px); box-shadow:0 18px 40px rgba(11,45,77,0.08); border-color:rgba(11,45,77,0.08); }
+    .service-card:hover .icon-badge{ transform:scale(1.14); box-shadow:0 8px 20px rgba(11,45,77,0.08); }
+
+    /* Button hover/interactions: subtle lift + color change + icon pop */
+    .btn:hover, .appointment-cta:hover{ transform:translateY(-4px) scale(1.02); }
+    .btn:active, .appointment-cta:active{ transform:translateY(-1px) scale(.995); }
+    .appointment-cta .bi{ transition: transform .18s ease; }
+    .appointment-cta:hover .bi{ transform:translateX(-4px) scale(1.06); }
+
+    /* Like button bounce and color fill */
+  .like-btn{ --like-color: var(--like-color) }
+    .like-btn .bi{ transition: transform .18s ease, color .18s ease; }
+    .like-btn:hover .bi{ transform:scale(1.12); }
+    .like-btn.liked{ color:var(--like-color); }
+    .like-btn.liked .bi{ color:var(--like-color); transform:scale(1.28); filter:drop-shadow(0 8px 20px rgba(225,29,72,0.12)); }
+
+    /* Respect prefers-reduced-motion */
+    @media (prefers-reduced-motion: reduce){
+      .btn, .like-btn, .icon-badge, .service-card, .appointment-cta{ transition:none !important; animation:none !important }
+    }
+
+    /* Hero refinement */
+  .hero{ background:linear-gradient(180deg, rgba(250,250,250,0.02), rgba(255,255,255,0.02)); padding:2.4rem 1rem;border-radius:12px;text-align:center; }
+    .hero h1{ font-size:2.1rem;color:var(--brand-deep);margin-bottom:6px }
+  .hero p{ color:var(--muted-text);margin-bottom:12px }
+  .primary-btn{ background:linear-gradient(180deg,var(--brand),#0b61d6); color:var(--on-brand);padding:10px 14px;border-radius:8px;text-decoration:none }
+
+    /* Lawyer cards */
+    .lawyer-cards{ display:flex;flex-wrap:wrap;gap:16px }
+    .lawyer-card{ border-radius:10px;overflow:hidden;border:1px solid rgba(11,45,77,0.04);transition:transform .18s ease,box-shadow .18s ease }
+    .lawyer-card:hover{ transform:translateY(-6px); box-shadow:0 12px 30px rgba(11,45,77,0.06) }
+    .lawyer-media img{ width:100%;height:auto;display:block }
+    .lawyer-body h3{ color:var(--brand-deep); margin:0 0 6px 0 }
+
+    /* Nav and footer tweaks */
+    nav.navbar{ background:var(--nav-bg); border-bottom:1px solid rgba(11,45,77,0.04); }
+    nav .navbar-brand{ font-weight:800;color:var(--brand-deep); }
+  footer.footer{ color:var(--muted-text);padding:2rem 0;background:transparent }
+
+    /* reduce animation intensity on small screens */
+    @media (max-width:576px){
+      .icon-badge{ animation-duration:6s; }
+      .service-card{ transform:none !important }
+    }
+  </style>
+  <style>
+    /* Extra polish: entrance fades, CTA subtle pulse, separators */
+    @keyframes fadeInUp { from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)} }
+    .fade-in-up{ animation: fadeInUp .5s ease both; }
+
+    /* Stagger utilities for small number of items (applied inline) */
+  .stagger-1{ animation-delay:0s }
+    .stagger-2{ animation-delay:.12s }
+    .stagger-3{ animation-delay:.24s }
+
+    /* CTA pulse for primary action (subtle) */
+    @keyframes ctaPulse { 0%{ box-shadow:0 0 0 0 rgba(13,110,253,0.12) } 70%{ box-shadow:0 0 0 10px rgba(13,110,253,0) } 100%{ box-shadow:0 0 0 0 rgba(13,110,253,0) } }
+    .cta-pulse{ animation: ctaPulse 2.8s infinite; }
+
+    /* Separator line */
+    .section-sep{ height:1px;background:linear-gradient(90deg,rgba(11,45,77,0.04),rgba(11,45,77,0.02));margin:22px 0;border-radius:2px }
+
+    /* Subtle footer link hover */
+    footer.footer a{ color:inherit; text-decoration:none; transition:color .16s ease }
+    footer.footer a:hover{ color:var(--brand-deep) }
+
+    /* Slightly increase card radii on large screens for elegance */
+    @media (min-width:992px){ .service-card, .lawyer-card{ border-radius:12px } }
+  </style>
+  <style>
+    /* Global content styles for all pages (forms, posts, lists, buttons, pagination) */
+  body { font-family: 'Tajawal', sans-serif; line-height:1.6; color:var(--text); }
+    main.container{ max-width:1100px; }
+
+    /* Headings */
+    h1,h2,h3,h4{ color:var(--brand-deep); margin-top:0 }
+    h1{ font-size:2rem }
+    h2{ font-size:1.5rem }
+
+    /* Paragraphs and links */
+  p{ color:var(--muted-text) }
+    a{ color:var(--brand); }
+    a:hover{ color:var(--brand-deep); text-decoration:underline }
+
+    /* Forms: inputs, textarea, selects */
+  .form-control{ width:100%; padding:10px 12px; border:1px solid var(--card-border); border-radius:8px; background:var(--card-bg); box-shadow:none; transition:box-shadow .12s ease,border-color .12s ease }
+    .form-control:focus{ outline:none; box-shadow:0 6px 16px rgba(11,45,77,0.06); border-color:var(--brand) }
+    label{ font-weight:700; color:var(--brand-deep); display:block; margin-bottom:6px }
+    .form-row{ display:flex; gap:12px; flex-wrap:wrap }
+
+    /* Buttons */
+    .btn{ padding:8px 12px;border-radius:8px;cursor:pointer }
+  .btn-primary{ background:var(--brand); color:var(--on-brand); border:none }
+    .btn-outline{ background:transparent; border:1px solid rgba(11,45,77,0.08); color:var(--brand-deep) }
+
+    /* Blog post content */
+    .post-content img{ max-width:100%; height:auto; border-radius:8px }
+    .post-content p{ margin-bottom:1rem; }
+    blockquote{ border-left:3px solid rgba(11,45,77,0.08); padding:8px 12px; background:linear-gradient(90deg, rgba(11,45,77,0.02), rgba(11,45,77,0.01)); border-radius:6px }
+
+    /* Comments */
+    .comments { margin-top:18px }
+  .comment { border:1px solid var(--card-border); padding:12px; border-radius:8px; margin-bottom:12px;background:var(--card-bg) }
+    .comment .meta{ font-size:0.9rem; color:var(--muted) }
+    .comment-form textarea{ min-height:120px }
+
+    /* Appointment/contact forms */
+  .form-card{ padding:18px;border-radius:10px;border:1px solid var(--card-border); background:var(--card-bg) }
+
+    /* Pagination */
+    .pagination{ display:flex; gap:8px; list-style:none;padding:0 }
+    .pagination li a{ padding:8px 12px;border-radius:8px;border:1px solid rgba(11,45,77,0.06); color:var(--brand-deep); text-decoration:none }
+  .pagination li a.active, .pagination li a:hover{ background:var(--brand); color:var(--on-brand); border-color:var(--card-border) }
+
+    /* Utilities */
+    .text-muted{ color:var(--muted) }
+    .small{ font-size:0.9rem }
+
+    /* Responsive tweaks */
+    @media (max-width:768px){ main.container{ padding:0 12px } .form-row{ flex-direction:column } }
+  </style>
+  <style>
+    /* Enhanced form controls and card headers */
+    .form-card{ box-shadow: 0 6px 18px rgba(11,45,77,0.04); }
+    .input-with-icon{ position:relative }
+    .input-with-icon input{ padding-left:44px }
+    .input-icon{ position:absolute; left:12px; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:6px; background:rgba(11,45,77,0.02); color:var(--brand-deep) }
+
+    /* Card header and meta */
+    .card-header{ border-bottom:1px solid rgba(11,45,77,0.04); padding-bottom:8px; margin-bottom:12px }
+    .card-title{ font-size:1.25rem; color:var(--brand-deep); margin:0 }
+    .meta { color:var(--muted); font-size:0.95rem }
+
+    /* Form buttons group */
+    .form-actions{ display:flex; gap:12px; justify-content:flex-end; margin-top:12px }
+
+    /* Subtle input helper text */
+    .form-help{ font-size:0.85rem; color:#64748b; margin-top:6px }
+
+    /* Visually distinct cards for posts and lawyers */
+  .post-card{ padding:18px; border-radius:10px; background:var(--card-bg); box-shadow:0 8px 24px var(--card-elev) }
+  .post-card .post-content{ color:var(--text) }
+
+    /* Small badges */
+    .badge-soft{ display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(11,45,77,0.04);color:#111827;font-weight:600 }
+
+  /* Generic card class to apply hover lift and subtle border/color by category */
+  .card-like{ border:1px solid rgba(11,45,77,0.04); border-radius:10px; padding:12px; background:var(--card-bg); transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease }
+  .card-like:hover{ transform:translateY(-8px); box-shadow:0 18px 40px rgba(11,45,77,0.08); }
+
+  /* Like button: base + animated fill when active */
+  .like-btn{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:8px; border:none; background:transparent; cursor:pointer; color:var(--brand-deep); transition:transform .12s ease }
+  .like-btn .bi{ font-size:1.15rem; transition:transform .18s ease, color .18s ease }
+  .like-btn:active{ transform:scale(.98) }
+  .like-btn.liked .bi{ transform:scale(1.28); color:var(--like-color) } /* heart fill color */
+
+  /* Likes count style near the heart */
+  .likes-count{ margin-inline-start:8px; color:var(--muted); font-weight:700 }
+
+  /* category color variants (light background) - easy to extend in admin or templates */
+  .card--cat-featured{ background:linear-gradient(180deg, rgba(250,240,215,0.6), var(--card-bg)); border-color: rgba(184,134,11,0.12) }
+  .card--cat-civil{ background:rgba(13,110,253,0.02); border-color: rgba(13,110,253,0.06) }
+  .card--cat-criminal{ background:rgba(220,38,38,0.02); border-color: rgba(220,38,38,0.06) }
+
+    /* Accessibility: focus-visible outlines for keyboard users */
+    :focus-visible{ outline:3px solid rgba(13,110,253,0.12); outline-offset:2px }
+  </style>
+</head>
+<body>
+  <!-- Sticky interactive navbar -->
+  <nav id="mainNav" class="navbar navbar-expand-lg" role="navigation" aria-label="القائمة الرئيسية">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">⚖️ المحامية ايمان النجار</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="تبديل التنقل">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        {# All nav items + CTA in one row so buttons sit next to each other #}
+        <ul class="navbar-nav ml-auto d-flex align-items-center" style="gap:12px">
+          <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">الرئيسية</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.path|slice:":10" == '/services' %}active{% endif %}" href="/services/">الخدمات</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.path|slice:":7" == '/cases/' or request.path|slice:":6" == '/cases' %}active{% endif %}" href="/cases/">قضايا</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.path|slice:":6" == '/blog/' %}active{% endif %}" href="/blog/">المقالات</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.path|slice:":5" == '/faq/' %}active{% endif %}" href="/faq/">الأسئلة الشائعة</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.path|slice:":8" == '/contact' %}active{% endif %}" href="/contact/">تواصل</a></li>
+          <li class="nav-item">
+            <button id="themeToggle" class="nav-link btn btn-sm" aria-pressed="false" aria-label="تبديل الوضع الداكن" title="تبديل الوضع الداكن">
+              <i id="themeIcon" class="bi bi-moon-fill" aria-hidden="true"></i>
+            </button>
+          </li>
+          <li class="nav-item"><a class="appointment-cta nav-link" href="/appointment/">حجز موعد</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <style>
+    /* Sticky navbar with shrink-on-scroll */
+    #mainNav{ position:sticky; top:0; z-index:60; background:var(--nav-bg); transition:padding .18s ease, box-shadow .18s ease }
+    #mainNav.scrolled{ box-shadow:0 8px 24px rgba(11,45,77,0.06); }
+    #mainNav .navbar-brand{ font-size:1.05rem; padding:10px 0 }
+    #mainNav.shrink .navbar-brand{ font-size:0.95rem }
+    #mainNav .nav-link{ padding:10px 12px; color:var(--brand-deep); }
+    #mainNav .nav-link.active{ font-weight:700; color:var(--brand); border-bottom:3px solid rgba(13,110,253,0.12); border-radius:4px }
+    @media (max-width:768px){ #mainNav .nav-link{ padding:8px 10px } }
+  </style>
+
+  <style>
+    /* Appointment CTA: make it brighter and stand out */
+  .appointment-cta{ background:linear-gradient(90deg,var(--appointment-from),var(--appointment-to)); color:var(--on-brand); padding:10px 14px; border-radius:10px; font-weight:700; box-shadow:0 8px 24px rgba(255,90,95,0.12); border:none }
+    .appointment-cta:hover{ transform:translateY(-2px); box-shadow:0 12px 30px rgba(255,90,95,0.16) }
+
+    /* Floating sticky appointment button for case pages */
+    .floating-appointment{ position:fixed; bottom:22px; left:22px; right:auto; z-index:120; display:none; }
+  .floating-appointment a{ display:inline-flex; align-items:center; gap:8px; padding:12px 16px; border-radius:999px; background:linear-gradient(90deg,var(--appointment-from),var(--appointment-to)); color:var(--on-brand); font-weight:700; box-shadow:0 18px 48px rgba(255,90,95,0.12); text-decoration:none }
+    .floating-appointment a .bi{ font-size:1.15rem }
+    @media (max-width:576px){ .floating-appointment{ right:16px; left:auto; } }
+  </style>
+
+<main class="container mt-4">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer text-center mt-5 mb-3">
+  <div class="container">
+    <p class="mb-1">© {{ now.year }} المحامية إيمان النجار — جميع الحقوق محفوظة</p>
+    <p class="small">عمان، الأردن • ت: 0786481539 • بريد: info@example.com</p>
+  </div>
+</footer>
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/file-input.js' %}"></script>
+<!-- Load local Fuse (recommended) - replace static/js/fuse.min.js with the official fuse.min.js for best fuzzy matching -->
+<script src="{% static 'js/fuse.min.js' %}"></script>
+
+<style>
+  /* clearer keyboard focus for interactive cards used by search keyboard navigation */
+  .service-card:focus, .card-like:focus, .post-card:focus { outline: none; box-shadow: 0 12px 36px rgba(11,45,77,0.12); transform: translateY(-4px); border-color: rgba(13,110,253,0.18); }
+  .service-card:focus mark, .post-card:focus mark, .card-like:focus mark { background: rgba(255,235,59,0.18); padding:2px 4px; border-radius:4px; }
+</style>
+<script>
+  // expose toggle_like URL for JS (server-side rendered)
+  window.urls = window.urls || {};
+  window.urls.toggle_like = "{% url 'core:toggle_like' %}";
+
+  // Like button interaction: toggle visual state, aria attribute, and POST to server.
+  (function(){
+    // pending actions queued while user interacts; each entry: { case_id: '12', action: 'like'|'unlike' }
+    var pending = [];
+
+    function getCookie(name){
+      var v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return v ? v.pop() : '';
+    }
+
+    function enqueueAction(caseId, action){
+      pending.push({ case_id: String(caseId), action: action });
+    }
+
+    function flushPendingViaFetch(){
+      if (!pending.length) return Promise.resolve();
+      var payload = pending.slice();
+      // send them one-by-one to keep server-side counts accurate and avoid race conditions
+      var csrftoken = getCookie('csrftoken');
+      return payload.reduce(function(promise, item){
+        return promise.then(function(){
+          return fetch(window.urls.toggle_like, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'X-CSRFToken': csrftoken },
+            body: 'case_id=' + encodeURIComponent(item.case_id) + '&action=' + encodeURIComponent(item.action)
+          }).then(function(res){ if (!res.ok) throw new Error('network'); return res.json(); }).then(function(json){
+            // update global DOM for returned case
+            var btn = document.querySelector('.like-btn[data-case-id="' + item.case_id + '"]');
+            if (btn){
+              btn.classList.toggle('liked', !!json.liked);
+              btn.setAttribute('aria-pressed', json.liked ? 'true' : 'false');
+              var counter = btn.querySelector('.likes-count') || btn.parentElement.querySelector('.likes-count');
+              if (counter && json.likes !== undefined) counter.textContent = json.likes;
+            }
+            // remove the item from pending (first occurrence)
+            var idx = pending.findIndex(function(p){ return p.case_id === item.case_id && p.action === item.action; });
+            if (idx !== -1) pending.splice(idx, 1);
+          }).catch(function(){
+            // keep in pending for retry later
+          });
+        });
+      }, Promise.resolve());
+    }
+
+    function sendBeaconFallback(){
+      if (!pending.length) return;
+      if (navigator.sendBeacon){
+        // encode as JSON and send to same endpoint; server accepts POST form-encoded but we'll send JSON
+        try{
+          var url = window.urls.toggle_like;
+          var data = JSON.stringify(pending);
+          navigator.sendBeacon(url, new Blob([data], { type: 'application/json' }));
+          // don't clear pending here; server may or may not process it. We'll optimistically clear to avoid duplication on reload.
+          pending = [];
+        }catch(_){ }
+      }
+    }
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('.like-btn');
+      if (!btn) return;
+      e.preventDefault();
+
+      var caseId = btn.getAttribute('data-case-id');
+      if (!caseId){ console.warn('like-btn missing data-case-id'); return; }
+
+      var wasLiked = btn.classList.contains('liked');
+      var action = wasLiked ? 'unlike' : 'like';
+
+      // optimistic UI toggle
+      btn.classList.toggle('liked', action === 'like');
+      btn.setAttribute('aria-pressed', action === 'like' ? 'true' : 'false');
+      // optimistic counter update
+      var counter = btn.querySelector('.likes-count') || btn.parentElement.querySelector('.likes-count');
+      if (counter){
+        var n = parseInt(counter.textContent || '0', 10) || 0;
+        counter.textContent = (action === 'like') ? (n + 1) : Math.max(n - 1, 0);
+      }
+
+      // enqueue and try to flush immediately
+      enqueueAction(caseId, action);
+      flushPendingViaFetch();
+    });
+
+    // keyboard support stays the same but triggers click
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        var el = document.activeElement;
+        if (el && el.classList && el.classList.contains('like-btn')) {
+          e.preventDefault();
+          el.click();
+        }
+      }
+    });
+
+    // try to flush pending actions periodically (in case of flaky network)
+    setInterval(function(){ if (pending.length) flushPendingViaFetch(); }, 4000);
+
+    // sendBeacon on unload as a best-effort fallback
+    window.addEventListener('beforeunload', function(){ sendBeaconFallback(); });
+    window.addEventListener('pagehide', function(){ sendBeaconFallback(); });
+  })();
+
+  // Ensure keyboard users can toggle the like button via Enter/Space
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      var el = document.activeElement;
+      if (el && el.classList && el.classList.contains('like-btn')) {
+        e.preventDefault();
+        el.click();
+      }
+    }
+  });
+</script>
+<script>
+  // Theme manager: supports 'light'|'dark'|'auto'
+  // - Default when no saved selection: light (no class on root)
+  // - 'dark': force dark (add .theme-dark)
+  // - 'light': force light (remove .theme-dark)
+  // - 'auto': follow prefers-color-scheme; apply .theme-dark only when OS prefers dark
+  (function(){
+    var key = 'site-theme'; // values: 'light'|'dark'|'auto'
+    var root = document.documentElement || document.body;
+    var toggle = null;
+
+    function applyTheme(mode){
+      // mode: 'light'|'dark'|'auto'
+      try{
+        if (mode === 'dark'){
+          root.classList.add('theme-dark');
+          localStorage.setItem(key, 'dark');
+        } else if (mode === 'light'){
+          root.classList.remove('theme-dark');
+          localStorage.setItem(key, 'light');
+        } else {
+          // auto: follow prefers-color-scheme immediately
+          try{
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){ root.classList.add('theme-dark'); }
+            else { root.classList.remove('theme-dark'); }
+          }catch(e){ root.classList.remove('theme-dark'); }
+          localStorage.setItem(key, 'auto');
+        }
+      }catch(e){ /*ignore storage errors*/ }
+      updateToggleUI();
+    }
+
+    function getSaved(){ try{ var v = localStorage.getItem(key); return (v === 'dark' || v === 'light' || v === 'auto') ? v : null; }catch(e){ return null; } }
+
+    function getEffective(){
+      // If user selected dark/light, honor it. If 'auto', use system. If null, default to light (no class)
+      var saved = getSaved();
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (saved === 'auto'){
+        try{ return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'; }
+        catch(e){ return 'light'; }
+      }
+      return 'light';
+    }
+
+    function updateToggleUI(){
+      try{
+        toggle = toggle || document.getElementById('themeToggle');
+        var icon = document.getElementById('themeIcon');
+        var saved = getSaved();
+        var eff = getEffective();
+        if (toggle){
+          // aria-pressed indicates whether the *effective* mode is dark
+          toggle.setAttribute('aria-pressed', eff === 'dark' ? 'true' : 'false');
+        }
+        if (icon){
+          // show sun when effective is dark (click would go to light), moon when effective is light
+          icon.className = eff === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+        }
+      }catch(e){/*ignore*/}
+    }
+
+    // Cycle order: light -> dark -> auto -> light
+    function cycleTheme(){
+      var cur = getSaved() || 'light';
+      var next = 'dark';
+      if (cur === 'light') next = 'dark';
+      else if (cur === 'dark') next = 'auto';
+      else if (cur === 'auto') next = 'light';
+      applyTheme(next);
+    }
+
+    // initialize: do NOT add a class if there's no saved preference. If saved is 'dark' or 'auto' and system prefers dark,
+    // apply .theme-dark early. Otherwise leave no class (light default).
+    (function init(){
+      try{
+        var saved = getSaved();
+        if (saved === 'dark') { root.classList.add('theme-dark'); }
+        else if (saved === 'auto'){
+          try{ if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) root.classList.add('theme-dark'); }
+          catch(e){}
+        } else {
+          // saved === 'light' || null -> leave no class (light via :root)
+        }
+      }catch(e){}
+    })();
+
+    document.addEventListener('DOMContentLoaded', function(){
+      toggle = document.getElementById('themeToggle');
+      if (toggle){ toggle.addEventListener('click', function(e){ e.preventDefault(); cycleTheme(); }); }
+
+      // if in 'auto' mode, respond to OS changes
+      try{
+        var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+        if (mq && mq.addEventListener){ mq.addEventListener('change', function(){ if (getSaved() === 'auto') applyTheme('auto'); }); }
+      }catch(e){}
+
+      updateToggleUI();
+    });
+  })();
+</script>
+<script>
+  // Simple ripple effect for buttons with .ripple
+  (function (){
+    function makeRipple(e){
+      var el = e.currentTarget;
+      var rect = el.getBoundingClientRect();
+      var circle = document.createElement('span');
+      var size = Math.max(rect.width, rect.height) * 1.4;
+      circle.className = 'ripple-circle';
+      circle.style.width = circle.style.height = size + 'px';
+      circle.style.left = (e.clientX - rect.left - size/2) + 'px';
+      circle.style.top = (e.clientY - rect.top - size/2) + 'px';
+      el.appendChild(circle);
+      // animate via CSS transitions
+      requestAnimationFrame(function(){ circle.style.transform = 'scale(1)'; circle.style.opacity = '0'; });
+      setTimeout(function(){ try{ el.removeChild(circle) }catch(_){ } }, 420);
+    }
+
+    function bindRipples(){
+      var els = document.querySelectorAll('.ripple');
+      els.forEach(function(el){
+        if (el._rippleBound) return; el._rippleBound = true;
+        el.addEventListener('click', makeRipple);
+      });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindRipples); else bindRipples();
+  })();
+  // Apply ripple class to main interactive elements to get the effect
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.btn, .like-btn').forEach(function(b){ b.classList.add('ripple'); });
+  });
+</script>
+<script>
+  // Navbar interactivity: shrink-on-scroll + collapse mobile menu on link click + client-side active highlight
+  (function(){
+    var nav = document.getElementById('mainNav');
+    var collapseEl = document.getElementById('navbarNav');
+    function onScroll(){
+      if (!nav) return;
+      if (window.scrollY > 24) { nav.classList.add('scrolled'); nav.classList.add('shrink'); }
+      else { nav.classList.remove('scrolled'); nav.classList.remove('shrink'); }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // Collapse bootstrap menu on nav link click (mobile)
+    document.querySelectorAll('#navbarNav .nav-link').forEach(function(link){
+      link.addEventListener('click', function(){
+        try{ if (collapseEl && collapseEl.classList.contains('show')) { $(collapseEl).collapse('hide'); } }
+        catch(e){ /* fallback: remove 'show' class */ if (collapseEl) collapseEl.classList.remove('show'); }
+      });
+    });
+
+    // update active link client-side when navigating anchors
+    document.querySelectorAll('#navbarNav .nav-link').forEach(function(link){
+      link.addEventListener('click', function(){
+        document.querySelectorAll('#navbarNav .nav-link').forEach(function(l){ l.classList.remove('active'); });
+        this.classList.add('active');
+      });
+    });
+  })();
+</script>
+{# Floating appointment CTA — visible only on /cases/ and /cases/<id>/ pages #}
+{% if request.path|slice:":6" == '/cases' or request.path|slice:":7" == '/cases/' %}
+  <div class="floating-appointment" aria-hidden="false">
+    <a href="/appointment/" title="حجز موعد">
+      <i class="bi bi-calendar2-check"></i>
+      <span>حجز موعد</span>
+    </a>
+  </div>
+  <script>
+    // Ensure floating CTA is visible (display property set in CSS)
+    document.addEventListener('DOMContentLoaded', function(){
+      var fa = document.querySelector('.floating-appointment');
+      if (fa) fa.style.display = 'block';
+    });
+  </script>
+{% endif %}
+{% block extra_js %}{% endblock %}
+</body>
+</html>

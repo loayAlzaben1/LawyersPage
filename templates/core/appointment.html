@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}حجز موعد - موقع {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1>حجز موعد</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+            {% if form.name.errors %}<div class="text-danger">{{ form.name.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.phone.label_tag }}
+            {{ form.phone }}
+            {% if form.phone.errors %}<div class="text-danger">{{ form.phone.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {% if form.email.errors %}<div class="text-danger">{{ form.email.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.service.label_tag }}
+            {{ form.service }}
+            {% if form.service.errors %}<div class="text-danger">{{ form.service.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.preferred_datetime.label_tag }}
+            {{ form.preferred_datetime }}
+            <small class="form-text text-muted">شكل التاريخ والوقت: YYYY-MM-DD HH:MM</small>
+            {% if form.preferred_datetime.errors %}<div class="text-danger">{{ form.preferred_datetime.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.message.label_tag }}
+            {{ form.message }}
+            {% if form.message.errors %}<div class="text-danger">{{ form.message.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.attachment.label_tag }}
+            {{ form.attachment }}
+            <small class="form-text text-muted">(مسوح ضوئية أو PDF، الحد الأقصى 10 ميغابايت)</small>
+            {% if form.attachment.errors %}<div class="text-danger">{{ form.attachment.errors }}</div>{% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">إرسال طلب الموعد</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// If arriving with ?service=..., scroll to the form and focus the name input for faster booking
+document.addEventListener('DOMContentLoaded', function(){
+    try{
+        var params = new URLSearchParams(window.location.search);
+        if (!params.has('service')) return;
+        var form = document.querySelector('form');
+        var nameInput = document.querySelector('input[name="name"]');
+        if (!form) return;
+        // smooth scroll into view and focus after a short delay
+        form.scrollIntoView({behavior:'smooth', block:'center'});
+        if (nameInput){
+            setTimeout(function(){ try{ nameInput.focus({preventScroll:true}); }catch(e){ nameInput.focus(); } }, 400);
+        }
+    }catch(e){/* silent */}
+});
+</script>
+{% endblock %}

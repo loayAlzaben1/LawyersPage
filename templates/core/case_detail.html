@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}تفاصيل القضية - {{ case.title }}{% endblock %}
+{% block content %}
+<article style="background:#fff;padding:18px;border-radius:8px;border:1px solid rgba(11,45,77,0.04)">
+    <header style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div>
+            <h1 style="margin:0">{{ case.title }}</h1>
+            <div class="small text-muted">{{ case.case_date|default:case.created_at.date }}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+            {% if case.pk in liked_cases %}
+                <button class="like-btn liked" data-case-id="{{ case.pk }}" aria-label="أعجبني" aria-pressed="true" title="أعجبني هذا">
+                    <i class="bi bi-heart" aria-hidden="true"></i>
+                    <span class="small">أعجبني</span>
+                    <span class="likes-count small" aria-hidden="true">{{ case.likes }}</span>
+                </button>
+            {% else %}
+                <button class="like-btn" data-case-id="{{ case.pk }}" aria-label="أعجبني" aria-pressed="false" title="أعجبني هذا">
+                    <i class="bi bi-heart" aria-hidden="true"></i>
+                    <span class="small">أعجبني</span>
+                    <span class="likes-count small" aria-hidden="true">{{ case.likes }}</span>
+                </button>
+            {% endif %}
+            <a class="btn btn-outline" href="{% url 'core:cases' %}">رجوع</a>
+        </div>
+    </header>
+
+    <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap">
+        {% if case.image %}
+            <div style="flex:0 0 300px"><img src="{{ case.image.url }}" alt="{{ case.title }}" style="width:300px;height:200px;object-fit:cover;border-radius:6px;" loading="lazy"></div>
+        {% endif %}
+        <div style="flex:1">
+            <div class="small text-muted">{{ case.case_type }} • {{ case.outcome }} • {{ case.client_initials }}</div>
+            <div style="margin-top:12px">{{ case.summary|linebreaks }}</div>
+
+            {% if case.images.all %}
+                <section style="margin-top:16px">
+                    <h4>معرض الصور</h4>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        {% for img in case.images.all %}
+                            <div style="width:150px"><img src="{{ img.image.url }}" alt="{{ img.caption }}" style="width:150px;height:100px;object-fit:cover;border-radius:6px;" loading="lazy"></div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if case.documents.all %}
+                <section style="margin-top:16px">
+                    <h4>المستندات</h4>
+                    <ul>
+                        {% for d in case.documents.all %}
+                            <li><a href="{{ d.file.url }}" target="_blank">{{ d.title|default:d.file.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            {% endif %}
+        </div>
+    </div>
+
+    <p style="margin-top:18px"><a href="{% url 'core:cases' %}">رجوع إلى القضايا</a></p>
+</article>
+{% endblock %}

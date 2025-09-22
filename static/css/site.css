@@ -1,0 +1,22 @@
+/* Site styles */
+:root {
+	--bg: #ffffff;
+	--text: #222;
+	--muted: #6b7280;
+	--primary: #2C7BE5;
+	--primary-dark: #255ec4;
+	--card-bg: #f8fafc;
+}
+
+body { background: var(--bg); color: var(--text); }
+.hero { background: var(--card-bg); padding: 1.5rem; border-radius: 8px; }
+.primary-btn { background: var(--primary); color: #fff; border: none; }
+.primary-btn:hover { background: var(--primary-dark); color: #fff; }
+.navbar-brand { font-weight: 700; }
+.card { border-radius: 8px; background: var(--card-bg); }
+/* RTL tweaks */
+.text-rtl { direction: rtl; }
+
+
+
+.footer { padding: 2rem 0; background: transparent; color: var(--muted); }

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} - {{ SITE_NAME }}{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'blog/css/blog.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:900px">
+  <article class="post-detail">
+    <h1 style="font-size:2rem">{{ post.title }}</h1>
+    <div class="meta small text-muted">{{ post.published_at|date:'j M Y' }}</div>
+    <div class="post-media mt-3">
+      {% if post.processed_og_image_large %}
+        <img src="{{ post.processed_og_image_large.url }}" alt="{{ post.title }}" style="width:100%;height:auto;border-radius:8px;object-fit:cover">
+      {% elif post.featured_image %}
+        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" style="width:100%;height:auto;border-radius:8px;object-fit:cover">
+      {% endif %}
+    </div>
+
+    <div class="post-body mt-4">{{ post.content|safe }}</div>
+
+    <section class="comments mt-5">
+      <h3>التعليقات</h3>
+      {% if approved_comments and approved_comments|length > 0 %}
+        <ul class="list-unstyled">
+          {% for c in approved_comments %}
+            <li style="padding:10px;border-bottom:1px solid rgba(0,0,0,0.04)">
+              <div style="font-weight:700">{{ c.name|default:'زائر' }}</div>
+              <div style="color:#4b5563">{{ c.comment }}</div>
+              <div class="small text-muted">{{ c.created_at|date:'j M Y H:i' }}</div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">لا توجد تعليقات بعد. كن أول من يعلق.</p>
+      {% endif %}
+    </section>
+
+    <section class="leave-comment mt-4">
+      <h4>أترك تعليقًا</h4>
+      <form method="post" action="">
+        {% csrf_token %}
+        {{ comment_form.non_field_errors }}
+        <div class="mb-2">
+          {{ comment_form.name.label_tag }}
+          {{ comment_form.name }}
+          {{ comment_form.name.errors }}
+        </div>
+        <div class="mb-2">
+          {{ comment_form.email.label_tag }}
+          {{ comment_form.email }}
+          {{ comment_form.email.errors }}
+        </div>
+        <div class="mb-2">
+          {{ comment_form.comment.label_tag }}
+          {{ comment_form.comment }}
+          {{ comment_form.comment.errors }}
+        </div>
+        {{ comment_form.hp_field }}
+        <div>
+          <button class="btn btn-primary" type="submit">إرسال التعليق</button>
+        </div>
+      </form>
+    </section>
+  </article>
+</div>
+{% endblock %}
