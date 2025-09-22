@@ -23,5 +23,6 @@ django-bootstrap4>=2.4
 django-extensions>=3.2
 python-dotenv>=1.0
 gunicorn>=20.1
+whitenoise>=6.5
 ruff==0.9.9
 black==24.1.0
