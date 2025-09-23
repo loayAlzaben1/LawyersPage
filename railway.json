@@ -1,9 +1,64 @@
-{
-  "build": {
-    "builder": "NIXPACKS"
-  },
-  "deploy": {
-    "preDeployCommand": "npm run predeploy",
-    "startCommand": "gunicorn lawyer_site.wsgi:application --bind 0.0.0.0:$PORT"
-  }
-}
+
+
+You reached the start of the range
+Sep 23, 2025, 4:40 PM
+ 
+[Region: europe-west4]
+=========================
+Using Detected Dockerfile
+=========================
+
+context: gffv-0NMb
+
+internal
+load build definition from Dockerfile
+0ms
+
+internal
+load metadata for docker.io/library/python:3.11-slim
+757ms
+
+auth
+library/python:pull token for registry-1.docker.io
+0ms
+
+internal
+load .dockerignore
+0ms
+
+1
+FROM docker.io/library/python:3.11-slim@sha256:a0939570b38cddeb861b8e75d20b1c8218b21562b18f301171904b544e8cf228
+8ms
+
+internal
+load build context
+0ms
+
+6
+RUN python manage.py collectstatic --noinput || true cached
+0ms
+
+5
+COPY . /app/ cached
+0ms
+
+4
+RUN pip install --no-cache-dir -r requirements.txt cached
+0ms
+
+3
+COPY requirements.txt /app/ cached
+0ms
+
+2
+WORKDIR /app cached
+0ms
+
+auth
+sharing credentials for production-europe-west4-drams3a.railway-registry.com
+0ms
+
+importing to docker
+3s
+Build time: 5.09 seconds
+		"preDeployCommand": "sh ./predeploy.sh",
