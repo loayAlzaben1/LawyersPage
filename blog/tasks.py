@@ -68,11 +68,12 @@ def process_og_images_for_post(pk):
 
 # Optional Celery task wrapper (importing Celery only if present at runtime)
 try:
-    from celery import shared_task
+    # type: ignore - celery is optional; Pylance may not have it installed in the editor env
+    from celery import shared_task  # type: ignore
 
     @shared_task
     def process_og_images_task(pk):
         return _generate_processed_images(pk)
-except Exception:
+except ImportError:
     # Celery not installed or configured; ignore
     pass

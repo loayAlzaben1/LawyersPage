@@ -38,27 +38,12 @@ load build context
 RUN python manage.py collectstatic --noinput || true cached
 0ms
 
-5
-COPY . /app/ cached
-0ms
-
-4
-RUN pip install --no-cache-dir -r requirements.txt cached
-0ms
-
-3
-COPY requirements.txt /app/ cached
-0ms
-
-2
-WORKDIR /app cached
-0ms
-
-auth
-sharing credentials for production-europe-west4-drams3a.railway-registry.com
-0ms
-
-importing to docker
-3s
-Build time: 5.09 seconds
+{
+	"build": {
+		"builder": "NIXPACKS"
+	},
+	"deploy": {
 		"preDeployCommand": "sh ./predeploy.sh",
+		"startCommand": "gunicorn lawyer_site.wsgi:application --bind 0.0.0.0:$PORT"
+	}
+}
