@@ -1,0 +1,10 @@
+{
+  "name": "lawyerspage",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "migrate": "python manage.py migrate",
+    "collectstatic": "python manage.py collectstatic --noinput",
+    "start": "npm run collectstatic && gunicorn lawyer_site.wsgi:application --bind 0.0.0.0:$PORT"
+  }
+}
