@@ -7,3 +7,21 @@ __pycache__
 media
 staticfiles
 node_modules
+
+# Exclude repository image/media files from Docker build context (we will add them to production storage later)
+media/
+media/**
+static/images/
+static/images/**
+static/**/images/**
+**/media/**
+**/static/**/images/**
+
+# Common image file types
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.svg
+*.ico
