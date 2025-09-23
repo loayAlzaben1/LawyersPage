@@ -6,13 +6,13 @@ MAX=24
 SLEEP=5
 
 echo "Waiting for database..."
-until python manage.py showmigrations > /dev/null 2>&1 || [ $TRIES -ge $MAX ]; do
+until python manage.py showmigrations > /dev/null 2>&1 || [ "$TRIES" -ge "$MAX" ]; do
   TRIES=$((TRIES+1))
   echo "DB not ready yet (try $TRIES/$MAX). Sleeping ${SLEEP}s..."
   sleep $SLEEP
 done
 
-if [ $TRIES -ge $MAX ]; then
+if [ "$TRIES" -ge "$MAX" ]; then
   echo "Database not ready after $((MAX * SLEEP))s"
   exit 1
 fi
