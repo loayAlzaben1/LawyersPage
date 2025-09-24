@@ -39,6 +39,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Temporary debug middleware to log ALLOWED_HOSTS and request host
+    'lawyer_site.middleware_debug.LogHostMiddleware',
     # WhiteNoise middleware for serving static files in production
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
