@@ -13,4 +13,4 @@ COPY . /app/
 # DO NOT run collectstatic during image build. Running collectstatic at start (or pre-deploy)
 # is safer when static storage requires runtime environment (S3 credentials, DATABASE_URL, etc.).
 # Bind to the PORT environment variable provided by the platform
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn lawyer_site.wsgi:application --bind 0.0.0.0:$PORT"]
+CMD ["sh", "-c", "gunicorn lawyer_site.wsgi:application --bind 0.0.0.0:$PORT --log-file -"]

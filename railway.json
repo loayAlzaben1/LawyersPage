@@ -1,6 +1,6 @@
 {
 	"deploy": {
 		"preDeployCommand": "python manage.py collectstatic --noinput",
-		"startCommand": "sh -c \"python manage.py migrate --noinput && gunicorn lawyer_site.wsgi:application --bind 0.0.0.0:$PORT\""
+		"startCommand": "sh -c \"python manage.py migrate --noinput && gunicorn lawyer_site.wsgi:application --bind 0.0.0.0:$PORT --log-file -\""
 	}
 }
