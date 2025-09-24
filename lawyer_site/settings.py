@@ -12,6 +12,7 @@ DEBUG = os.getenv('DJANGO_DEBUG', '1') == '1'
 
 _hosts = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1')
 ALLOWED_HOSTS = [h for h in _hosts.split() if h]
+ALLOWED_HOSTS = [*ALLOWED_HOSTS, 'lawyerspage-production.up.railway.app']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
