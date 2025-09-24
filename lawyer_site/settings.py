@@ -14,6 +14,13 @@ _hosts = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1')
 ALLOWED_HOSTS = [h for h in _hosts.split() if h]
 ALLOWED_HOSTS = [*ALLOWED_HOSTS, 'lawyerspage-production.up.railway.app']
 
+# Debug: print resolved ALLOWED_HOSTS to stderr at startup so it's visible in container logs
+try:
+    import sys
+    print(f"ALLOWED_HOSTS at startup: {ALLOWED_HOSTS}", file=sys.stderr)
+except Exception:
+    pass
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
