@@ -1,0 +1,11 @@
+Django==4.2.24
+beautifulsoup4==4.13.5
+django-bootstrap4==25.2
+django-crispy-forms==2.4
+django-parler==2.3
+pillow==11.3.0
+python-dotenv==1.1.1
+soupsieve==2.8
+sqlparse==0.5.3
+typing_extensions==4.15.0
+tzdata==2025.2
