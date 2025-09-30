@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ lawyer.name }} - {{ SITE_NAME }}{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .lawyer-detail { max-width:900px; margin:0 auto; padding:18px }
+    .lawyer-hero{ display:flex; gap:20px; align-items:center; flex-wrap:wrap }
+    .lawyer-photo{ width:220px; flex:0 0 220px }
+    .lawyer-photo img{ width:100%; height:auto; border-radius:10px; object-fit:cover }
+    .lawyer-info h1{ margin:0 0 8px 0 }
+    .contact-actions{ margin-top:12px; display:flex; gap:10px; flex-wrap:wrap }
+    .contact-actions .btn{ display:inline-flex; align-items:center; gap:8px }
+    .social-links{ margin-top:8px; display:flex; gap:8px; align-items:center }
+    .social-links a{ display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:8px; background:var(--card-bg); box-shadow:0 1px 0 rgba(0,0,0,0.03); color:var(--brand-deep); text-decoration:none }
+    .muted-small{ color:var(--muted-text); font-size:0.95rem }
+    @media (max-width:720px){ .lawyer-photo{ width:100%; flex-basis:100% } .lawyer-info{ flex:1 1 100% } }
+  </style>
+{% endblock %}
+
+{% block extra_meta %}
+  {# Page-specific meta for lawyer profile to improve social previews and SEO #}
+  {% if lawyer.bio %}
+    <meta name="description" content="{{ lawyer.bio|striptags|truncatechars:160 }}">
+  {% else %}
+    <meta name="description" content="{{ SITE_DESCRIPTION }}">
+  {% endif %}
+
+  <meta property="og:type" content="profile">
+  <meta property="og:title" content="{{ lawyer.name }}">
+  {% if lawyer.bio %}
+    <meta property="og:description" content="{{ lawyer.bio|striptags|truncatechars:160 }}">
+  {% else %}
+    <meta property="og:description" content="{{ SITE_DESCRIPTION }}">
+  {% endif %}
+  {% if lawyer.image %}
+    <meta property="og:image" content="{{ lawyer.image.url }}">
+    <meta name="twitter:image" content="{{ lawyer.image.url }}">
+  {% else %}
+    <meta property="og:image" content="{% static 'img/og-image.png' %}">
+    <meta name="twitter:image" content="{% static 'img/og-image.png' %}">
+  {% endif %}
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ lawyer.name }}">
+  {% if lawyer.bio %}
+    <meta name="twitter:description" content="{{ lawyer.bio|striptags|truncatechars:160 }}">
+  {% else %}
+    <meta name="twitter:description" content="{{ SITE_DESCRIPTION }}">
+  {% endif %}
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  {# JSON-LD Person schema for the lawyer to improve SEO and rich results #}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "{{ lawyer.name|escapejs }}",
+{% if lawyer.bio %}
+    "description": "{{ lawyer.bio|striptags|truncatechars:200|escapejs }}",
+{% endif %}
+{% if lawyer.image %}
+    "image": "{{ lawyer.image.url }}",
+{% endif %}
+{% if lawyer.phone or lawyer.email or lawyer.social_links %}
+    {% if lawyer.phone %}
+    "telephone": "{{ lawyer.phone|escapejs }}"{% if lawyer.email or lawyer.social_links %},{% endif %}
+    {% endif %}
+    {% if lawyer.email %}
+    "email": "{{ lawyer.email|escapejs }}"{% if lawyer.social_links %},{% endif %}
+    {% endif %}
+    {% if lawyer.social_links %}
+    "sameAs": [{% for k,v in lawyer.social_links.items %}"{{ v|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}]
+    {% endif %}
+{% endif %}
+    ,"mainEntityOfPage": { "@type": "WebPage", "@id": "{{ request.build_absolute_uri }}" }
+  }
+  </script>
+{% endblock %}
+
+{% block content %}
+<div class="container lawyer-detail">
+  <article>
+    <div class="lawyer-hero">
+      <div class="lawyer-photo">
+        {% if lawyer.image %}
+          <img src="{{ lawyer.image.url }}" alt="{{ lawyer.name }}">
+        {% else %}
+          <div style="width:100%;height:220px;background:var(--muted-bg);display:flex;align-items:center;justify-content:center;color:var(--muted-text);">لا توجد صورة</div>
+        {% endif %}
+      </div>
+      <div class="lawyer-info">
+        <h1>{{ lawyer.name }}</h1>
+        {% if lawyer.bio %}
+          <p class="muted-small">{{ lawyer.bio }}</p>
+        {% endif %}
+
+        <div class="contact-actions">
+          <a class="btn btn-primary" href="{% url 'core:appointment' %}?service=" title="حجز موعد">حجز موعد</a>
+          <a class="btn btn-outline-primary" href="{% url 'core:contact' %}" title="تواصل معنا">تواصل</a>
+
+          {# If the lawyer object includes phone/email fields show quick links. Safe to check even if attribute absent. #}
+          {% if lawyer.phone %}
+            <a class="btn" href="tel:{{ lawyer.phone|urlencode }}" title="اتصال">📞 {{ lawyer.phone }}</a>
+          {% endif %}
+          {% if lawyer.email %}
+            <a class="btn" href="mailto:{{ lawyer.email }}" title="بريد">✉️ {{ lawyer.email }}</a>
+          {% endif %}
+        </div>
+
+        {% comment %} Social links: expects a mapping like {"twitter":"https://...", "linkedin":"..."} stored in social_links on the model; render common icons. {% endcomment %}
+        {% if lawyer.social_links %}
+            <div class="social-links" aria-label="social links">
+              {% for key, url in lawyer.social_links.items %}
+                {% if url %}
+                  <a href="{{ url }}" target="_blank" rel="noopener noreferrer" title="{{ key }}">
+                    {% if key|lower == 'twitter' %}
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M22 5.92c-.66.29-1.37.5-2.12.59.76-.46 1.34-1.19 1.61-2.06-.71.42-1.5.73-2.34.9C18.6 4.18 17.58 3.62 16.44 3.62c-1.9 0-3.44 1.54-3.44 3.44 0 .27.03.53.09.78-2.86-.14-5.4-1.51-7.1-3.59-.3.51-.47 1.11-.47 1.75 0 1.21.62 2.27 1.56 2.9-.58-.02-1.12-.18-1.6-.44v.04c0 1.68 1.2 3.08 2.79 3.4-.29.08-.6.12-.92.12-.23 0-.46-.02-.68-.06.46 1.43 1.79 2.47 3.36 2.5-1.23.97-2.78 1.55-4.47 1.55-.29 0-.58-.02-.86-.05 1.6 1.03 3.5 1.64 5.55 1.64 6.66 0 10.31-5.51 10.31-10.29v-.47c.7-.5 1.3-1.12 1.78-1.83-.64.28-1.32.48-2.03.57z"/></svg>
+                    {% elif key|lower == 'linkedin' %}
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M4.98 3.5C3.88 3.5 3 4.38 3 5.48c0 1.1.88 1.98 1.98 1.98 1.1 0 1.98-.88 1.98-1.98C6.96 4.38 6.07 3.5 4.98 3.5zM3.5 8.98h3v11.52h-3V8.98zM9.5 8.98h2.88v1.57h.04c.4-.76 1.38-1.57 2.85-1.57 3.05 0 3.61 2.01 3.61 4.62v6.9h-3V15.5c0-1.27-.02-2.91-1.78-2.91-1.78 0-2.05 1.39-2.05 2.82v5.09h-3V8.98z"/></svg>
+                    {% else %}
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/></svg>
+                    {% endif %}
+                  </a>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+      </div>
+    </div>
+  </article>
+</div>
+{% endblock %}

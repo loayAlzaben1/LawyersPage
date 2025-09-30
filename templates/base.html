@@ -332,11 +332,71 @@
   .primary-btn{ background:linear-gradient(180deg,var(--brand),#0b61d6); color:var(--on-brand);padding:10px 14px;border-radius:8px;text-decoration:none }
 
     /* Lawyer cards */
-    .lawyer-cards{ display:flex;flex-wrap:wrap;gap:16px }
-    .lawyer-card{ border-radius:10px;overflow:hidden;border:1px solid rgba(11,45,77,0.04);transition:transform .18s ease,box-shadow .18s ease }
-    .lawyer-card:hover{ transform:translateY(-6px); box-shadow:0 12px 30px rgba(11,45,77,0.06) }
-    .lawyer-media img{ width:100%;height:auto;display:block }
-    .lawyer-body h3{ color:var(--brand-deep); margin:0 0 6px 0 }
+  .lawyer-cards{ display:flex;flex-wrap:wrap;gap:16px; justify-content:flex-start }
+  /* Make lawyer cards square and medium-sized using aspect-ratio + grid so content scales nicely */
+  .lawyer-card{ border-radius:12px; overflow:hidden; border:1px solid rgba(11,45,77,0.04); transition:transform .18s ease,box-shadow .18s ease; position:relative; display:grid; grid-template-rows: 1fr auto; box-sizing:border-box; background:var(--card-bg) }
+  /* default desktop size (increased for clearer presence) */
+  .lawyer-card{ width:320px; flex:0 0 320px; aspect-ratio: 1 / 1 }
+  .lawyer-card:hover{ transform:translateY(-6px); box-shadow:0 12px 30px rgba(11,45,77,0.06) }
+    /* Reduce image visual size without cropping: limit max-height and keep aspect ratio */
+  /* top area holds the image and scales to keep the card square */
+  .lawyer-media{ display:flex; align-items:center; justify-content:center; padding:16px; background:transparent; grid-row:1 }
+  .lawyer-media img{ display:block; width:auto; max-width:78%; height:auto; max-height:78%; object-fit:contain; border-radius:8px; transition: transform .28s ease; }
+    .lawyer-card:hover .lawyer-media img{ transform: scale(1.03) }
+  .lawyer-body{ grid-row:2; padding:10px; text-align:center }
+  .lawyer-body h3{ color:var(--brand-deep); margin:0 0 6px 0; font-size:1rem }
+
+  /* responsive: medium grid on tablet, compact on mobile */
+  @media (max-width:992px){ .lawyer-card{ width:280px; flex:0 0 280px } }
+  @media (max-width:768px){ .lawyer-card{ width:48%; flex:0 0 48% } }
+  @media (max-width:480px){ .lawyer-card{ width:160px; flex:0 0 160px } .lawyer-body h3{ font-size:0.94rem } }
+
+    /* Animated soft illumination for lawyer cards: subtle moving glow + shimmer */
+    .lawyer-card::before{
+      /* shimmer stripe moving across the card */
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%, rgba(255,255,255,0) 100%);
+      mix-blend-mode: screen;
+      transform: translateX(-120%);
+      animation: shimmer 3s linear infinite;
+      opacity: 1;
+      z-index: 0;
+      filter: blur(2px);
+    }
+
+    .theme-dark .lawyer-card::before{
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.02) 75%, rgba(255,255,255,0) 100%);
+      mix-blend-mode: screen;
+      opacity: 0.7;
+    }
+
+    .lawyer-card::after{
+      /* soft colored glow that slowly moves */
+      content: '';
+      position: absolute;
+      top: -20%; left: -20%; width: 140%; height: 140%;
+      background: radial-gradient(40% 40% at 20% 30%, rgba(13,110,253,0.12), rgba(144,182,255,0.08) 30%, rgba(255,123,123,0.06) 60%, rgba(255,255,255,0) 100%);
+      filter: blur(22px);
+      opacity: 0.95;
+      pointer-events: none;
+      animation: glowMove 5.6s ease-in-out infinite;
+      transform-origin: center;
+      z-index: 0;
+    }
+
+    .theme-dark .lawyer-card::after{ opacity: 0.55; }
+
+  @keyframes shimmer{ to { transform: translateX(120%); } }
+  @keyframes glowMove{ 0%{ transform: translateX(-8%); } 50%{ transform: translateX(8%); } 100%{ transform: translateX(-8%); } }
+
+  /* Ensure card children are above the illumination overlays so text and buttons remain clickable/visible */
+  .lawyer-card > * { position: relative; z-index: 1 }
+
+  /* Reduce padding to make the overall card a bit more compact while keeping internal element sizes similar */
+  .lawyer-card { padding: 10px }
 
     /* Nav and footer tweaks */
     nav.navbar{ background:var(--nav-bg); border-bottom:1px solid rgba(11,45,77,0.04); }

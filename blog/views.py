@@ -7,6 +7,7 @@ from django.core.paginator import Paginator, EmptyPage
 from django.template.loader import render_to_string
 from django.http import JsonResponse, Http404
 import os
+from django.shortcuts import get_object_or_404
 
 
 PAGE_SIZE = 6
@@ -84,3 +85,14 @@ def dev_check(request):
         pass
     from django.http import HttpResponse
     return HttpResponse('blog.dev-check OK - 2025-09-19')
+
+
+def lawyer_detail(request, pk):
+    """Render a simple detail page for an admin-editable LawyerCard.
+
+    The homepage cards use the lightweight LawyerCard model (not the full
+    core.LawyerProfile). This view exposes the editable fields so the site
+    owner can manage them via the admin and have a dedicated page.
+    """
+    lawyer = get_object_or_404(LawyerCard, pk=pk, is_active=True)
+    return render(request, 'blog/lawyer_detail.html', {'lawyer': lawyer})
