@@ -474,7 +474,7 @@
 </head>
 <body>
   <!-- Sticky interactive navbar -->
-  <nav id="mainNav" class="navbar navbar-expand-lg" role="navigation" aria-label="القائمة الرئيسية">
+  <nav id="mainNav" class="navbar navbar-expand-lg navbar-light" role="navigation" aria-label="القائمة الرئيسية">
     <div class="container-fluid">
       <a class="navbar-brand" href="/">⚖️ المحامية ايمان النجار</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="تبديل التنقل">
@@ -482,7 +482,7 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         {# All nav items + CTA in one row so buttons sit next to each other #}
-        <ul class="navbar-nav ml-auto d-flex align-items-center" style="gap:12px">
+  <ul class="navbar-nav mr-auto d-flex align-items-center" style="gap:12px">
           <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">الرئيسية</a></li>
           <li class="nav-item"><a class="nav-link {% if request.path|slice:":10" == '/services' %}active{% endif %}" href="/services/">الخدمات</a></li>
           <li class="nav-item"><a class="nav-link {% if request.path|slice:":7" == '/cases/' or request.path|slice:":6" == '/cases' %}active{% endif %}" href="/cases/">قضايا</a></li>
@@ -509,6 +509,16 @@
     #mainNav .nav-link{ padding:10px 12px; color:var(--brand-deep); }
     #mainNav .nav-link.active{ font-weight:700; color:var(--brand); border-bottom:3px solid rgba(13,110,253,0.12); border-radius:4px }
     @media (max-width:768px){ #mainNav .nav-link{ padding:8px 10px } }
+    /* Ensure the mobile hamburger icon is visible in both light and dark themes */
+    .navbar-toggler{ border: none; }
+    .navbar-toggler-icon{
+      width:24px; height:24px; display:inline-block; background-size:24px 24px; background-repeat:no-repeat; background-position:center;
+      /* SVG icon encoded for cross-theme visibility; stroke uses currentColor so we can control via color */
+      background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+    }
+    /* Toggler color: use brand-deep on light, and light color in dark theme */
+    #mainNav.navbar-light .navbar-toggler{ color: var(--brand-deep); }
+    .theme-dark #mainNav .navbar-toggler{ color: #ffffff; }
   </style>
 
   <style>
