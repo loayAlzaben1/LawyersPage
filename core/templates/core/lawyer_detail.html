@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{% if lawyer.full_name %}{{ lawyer.full_name }}{% elif lawyer.name %}{{ lawyer.name }}{% else %}{{ lawyer }}{% endif %} - {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="lawyer-profile">
+    <div class="lawyer-photo">
+      {% if lawyer.photo %}
+        <img src="{{ lawyer.photo.url }}" alt="{% if lawyer.full_name %}{{ lawyer.full_name }}{% elif lawyer.name %}{{ lawyer.name }}{% else %}{{ lawyer }}{% endif %}">
+      {% elif lawyer.image %}
+        <img src="{{ lawyer.image.url }}" alt="{% if lawyer.name %}{{ lawyer.name }}{% else %}{{ lawyer }}{% endif %}">
+      {% else %}
+        <div style="width:100%;height:320px;display:flex;align-items:center;justify-content:center;color:var(--muted)">لا توجد صورة</div>
+      {% endif %}
+    </div>
+    <div class="lawyer-info">
+      <h1>{% if lawyer.full_name %}{{ lawyer.full_name }}{% elif lawyer.name %}{{ lawyer.name }}{% else %}{{ lawyer }}{% endif %}</h1>
+      {% if lawyer.title %}<div class="meta">{{ lawyer.title }}</div>{% endif %}
+      {% if lawyer.bio %}
+        <div class="profile-section">{{ lawyer.bio|linebreaks }}</div>
+      {% endif %}
+
+      <div style="margin-top:12px">
+        <div class="contact-ctas">
+          {% if lawyer.phone %}<a class="btn" href="tel:{{ lawyer.phone|urlencode }}">📞 اتصل الآن</a>{% endif %}
+          {% if lawyer.email %}<a class="btn btn-outline" href="mailto:{{ lawyer.email }}">✉️ أرسل بريدًا</a>{% endif %}
+          <a class="btn btn-primary" href="/appointment/?service=">حجز موعد</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

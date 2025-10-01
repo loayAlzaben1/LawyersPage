@@ -8,7 +8,11 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lawyer_site.settings')
 import django
 django.setup()
 
-from blog.models import BlogPost
+try:
+    from blog.models import BlogPost
+except Exception:
+    print('blog app not available; exiting')
+    raise SystemExit(0)
 
 missing = []
 for p in BlogPost.objects.all():

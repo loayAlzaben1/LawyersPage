@@ -1,23 +1,42 @@
 {% load static %}
-<div class="lawyer-cards" style="display:flex;flex-wrap:wrap;gap:16px;">
+<div class="lawyer-cards">
   {% for lawyer in lawyers %}
-    <article class="lawyer-card post-card fade-in-up" style="flex:1 1 320px;display:flex;flex-direction:column;overflow:hidden;background:var(--card-bg);border:1px solid var(--card-border);border-radius:8px;">
-      <a href="{% url 'blog:lawyer_detail' lawyer.pk %}" aria-label="{{ lawyer.name }}" style="color:inherit;text-decoration:none;display:block;">
-      <div class="lawyer-media" style="width:100%;background:linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 90%, var(--bg) 10%));">
-        {% if lawyer.image %}
-          <img src="{{ lawyer.image.url }}" alt="{{ lawyer.name }}" loading="lazy" style="width:100%;height:auto;object-fit:contain;border-top-left-radius:8px;border-top-right-radius:8px;display:block;">
-        {% else %}
-          <div style="width:100%;min-height:140px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 92%, var(--bg) 8%), color-mix(in srgb, var(--card-bg) 84%, var(--bg) 16%));color:var(--muted-text);font-weight:700;">
-            محامية
+    {# Link to core lawyer detail; works for LawyerProfile or legacy LawyerCard since both have a PK #}
+    <a class="lawyer-link" href="{% url 'core:lawyer_detail' lawyer.pk %}" style="text-decoration:none;color:inherit;display:block">
+      <article class="lawyer-card post-card fade-in-up">
+        <div class="lawyer-media">
+          {# Prefer core.LawyerProfile.photo, then legacy .image field, then placeholder #}
+          {% if lawyer.photo %}
+            <img src="{{ lawyer.photo.url }}" alt="{% if lawyer.full_name %}{{ lawyer.full_name }}{% elif lawyer.name %}{{ lawyer.name }}{% else %}محامية{% endif %}" loading="lazy">
+          {% elif lawyer.image %}
+            <img src="{{ lawyer.image.url }}" alt="{% if lawyer.name %}{{ lawyer.name }}{% else %}محامية{% endif %}" loading="lazy">
+          {% else %}
+            <div class="placeholder-text">محامية</div>
+          {% endif %}
+          <div class="lawyer-overlay" aria-hidden="true"></div>
+        </div>
+        <div class="lawyer-body">
+          <h3 class="lawyer-name">
+            {% if lawyer.full_name %}
+              {{ lawyer.full_name }}
+            {% elif lawyer.name %}
+              {{ lawyer.name }}
+            {% else %}
+              {{ lawyer }}
+            {% endif %}
+          </h3>
+          {% if lawyer.title %}
+            <div class="lawyer-title">{{ lawyer.title }}</div>
+          {% endif %}
+          {% if lawyer.bio %}
+            <p class="lawyer-bio">{{ lawyer.bio|truncatechars:140 }}</p>
+          {% endif %}
+          <div>
+            <a class="lawyer-cta" href="{% url 'core:lawyer_detail' lawyer.pk %}"><span class="btn btn-outline">عرض الملف</span></a>
           </div>
-        {% endif %}
-      </div>
-      <div class="lawyer-body" style="padding:14px;display:flex;flex-direction:column;justify-content:center;gap:6px;">
-        <h3 class="lawyer-name" style="margin:0 0 6px 0;font-size:1.07rem;color:var(--text);">{{ lawyer.name }}</h3>
-        <p class="lawyer-bio" style="margin:0;color:var(--muted-text);font-size:0.96rem;line-height:1.5;">{{ lawyer.bio }}</p>
-      </div>
-      </a>
-    </article>
+        </div>
+      </article>
+    </a>
   {% empty %}
     <p>لا توجد بطاقات محامين مفعلة بعد.</p>
   {% endfor %}

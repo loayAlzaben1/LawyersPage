@@ -7,7 +7,7 @@
         <h1 class="card-title">{{ post.title }}</h1>
       </header>
 
-  <div class="card-media" style="min-height:180px;display:flex;align-items:center;justify-content:center;background:transparent;">
+  <div class="card-media" style="min-height:120px;display:flex;align-items:center;justify-content:center;background:transparent;">
         {% if post.processed_og_image_medium or post.processed_og_image_large or post.processed_og_image_small %}
           <img
             {% if post.processed_og_image_medium %}
@@ -21,11 +21,11 @@
             sizes="(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
             loading="lazy"
             class="card-image"
-            alt="{{ post.title }}" style="width:100%;height:180px;object-fit:cover;border-radius:8px;">
+            alt="{{ post.title }}" style="width:100%;height:auto;max-height:260px;object-fit:cover;border-radius:8px;">
         {% elif post.featured_image %}
-          <img src="{{ post.featured_image.url }}" loading="lazy" class="card-image" alt="{{ post.title }}" style="width:100%;height:180px;object-fit:cover;border-radius:8px;">
+          <img src="{{ post.featured_image.url }}" loading="lazy" class="card-image" alt="{{ post.title }}" style="width:100%;height:auto;max-height:260px;object-fit:cover;border-radius:8px;">
         {% else %}
-          <div class="img-placeholder" data-category="{{ post.category.name|default:'مقال' }}" style="width:100%;height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,0.02),rgba(255,255,255,0.02));color:var(--muted-text);border-radius:8px;">
+          <div class="img-placeholder" data-category="{{ post.category.name|default:'مقال' }}" style="width:100%;height:auto;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,0.02),rgba(255,255,255,0.02));color:var(--muted-text);border-radius:8px;">
             <span class="placeholder-icon" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;background:var(--card-border);border-radius:50%;">
               <!-- newspaper SVG -->
               <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true"><path d="M0 2a2 2 0 012-2h10a2 2 0 012 2v12H2a2 2 0 01-2-2V2zm3 1h9v2H3V3zm0 3h9v7H3V6z"/></svg>

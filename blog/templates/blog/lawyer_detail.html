@@ -8,13 +8,17 @@
     .lawyer-detail { max-width:900px; margin:0 auto; padding:18px }
     .lawyer-hero{ display:flex; gap:20px; align-items:center; flex-wrap:wrap }
     .lawyer-photo{ width:220px; flex:0 0 220px }
-    .lawyer-photo img{ width:100%; height:auto; border-radius:10px; object-fit:cover }
+    .lawyer-photo img{ width:100%; height:auto; border-radius:10px; object-fit:cover; max-width:100% }
+    .lawyer-info{ min-width:0 }
     .lawyer-info h1{ margin:0 0 8px 0 }
     .contact-actions{ margin-top:12px; display:flex; gap:10px; flex-wrap:wrap }
     .contact-actions .btn{ display:inline-flex; align-items:center; gap:8px }
+    .contact-actions a.btn{ max-width:100%; overflow-wrap:anywhere }
     .social-links{ margin-top:8px; display:flex; gap:8px; align-items:center }
     .social-links a{ display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:8px; background:var(--card-bg); box-shadow:0 1px 0 rgba(0,0,0,0.03); color:var(--brand-deep); text-decoration:none }
-    .muted-small{ color:var(--muted-text); font-size:0.95rem }
+    .muted-small{ color:var(--muted-text); font-size:0.95rem; overflow-wrap:anywhere }
+    /* Prevent long words (emails, urls) from breaking layout */
+    .lawyer-info, .lawyer-info *{ word-break:break-word; }
     @media (max-width:720px){ .lawyer-photo{ width:100%; flex-basis:100% } .lawyer-info{ flex:1 1 100% } }
   </style>
 {% endblock %}

@@ -2,12 +2,12 @@
 {% block title %}تفاصيل القضية - {{ case.title }}{% endblock %}
 {% block content %}
 <article style="background:#fff;padding:18px;border-radius:8px;border:1px solid rgba(11,45,77,0.04)">
-    <header style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+    <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
         <div>
             <h1 style="margin:0">{{ case.title }}</h1>
             <div class="small text-muted">{{ case.case_date|default:case.created_at.date }}</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;gap:8px;align-items:center;flex:0 0 auto">
             {% if case.pk in liked_cases %}
                 <button class="like-btn liked" data-case-id="{{ case.pk }}" aria-label="أعجبني" aria-pressed="true" title="أعجبني هذا">
                     <i class="bi bi-heart" aria-hidden="true"></i>
@@ -25,20 +25,20 @@
         </div>
     </header>
 
-    <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap">
+    <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
         {% if case.image %}
-            <div style="flex:0 0 300px"><img src="{{ case.image.url }}" alt="{{ case.title }}" style="width:300px;height:200px;object-fit:cover;border-radius:6px;" loading="lazy"></div>
+            <div style="flex:0 0 300px;max-width:100%"><img src="{{ case.image.url }}" alt="{{ case.title }}" style="width:100%;max-width:300px;height:auto;object-fit:cover;border-radius:6px;" loading="lazy"></div>
         {% endif %}
-        <div style="flex:1">
+        <div style="flex:1;min-width:0">
             <div class="small text-muted">{{ case.case_type }} • {{ case.outcome }} • {{ case.client_initials }}</div>
-            <div style="margin-top:12px">{{ case.summary|linebreaks }}</div>
+            <div style="margin-top:12px;word-break:break-word">{{ case.summary|linebreaks }}</div>
 
             {% if case.images.all %}
                 <section style="margin-top:16px">
                     <h4>معرض الصور</h4>
                     <div style="display:flex;gap:8px;flex-wrap:wrap">
                         {% for img in case.images.all %}
-                            <div style="width:150px"><img src="{{ img.image.url }}" alt="{{ img.caption }}" style="width:150px;height:100px;object-fit:cover;border-radius:6px;" loading="lazy"></div>
+                            <div style="width:150px;max-width:100%"><img src="{{ img.image.url }}" alt="{{ img.caption }}" style="width:100%;max-width:150px;height:auto;object-fit:cover;border-radius:6px;" loading="lazy"></div>
                         {% endfor %}
                     </div>
                 </section>

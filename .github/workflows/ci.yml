@@ -70,7 +70,7 @@ jobs:
           if [ -f tests_smoke.txt ]; then
             xargs -a tests_smoke.txt -n 1 python -m pytest -q || true
           else
-            python manage.py test blog.tests.test_og_meta || true
+            python manage.py test core.tests.test_smoke_quick || true
           fi
 
       - name: Run full tests under coverage and capture output

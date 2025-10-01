@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}تواصل معنا - {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="container" style="max-width:900px;padding:18px">
+  <h1>تواصل معنا</h1>
+  <p>يمكنك مراسلتنا عبر النموذج أو الاتصال على الرقم التالي للحصول على مساعدة أسرع:</p>
+  <div style="margin:12px 0 18px">
+    <a class="btn btn-primary" href="tel:0786481539">📞 0786481539</a>
+    <a class="btn btn-outline" href="mailto:{{ DEFAULT_FROM_EMAIL|default:'info@example.com' }}">✉️ {{ DEFAULT_FROM_EMAIL|default:'info@example.com' }}</a>
+  </div>
+
+  <div style="margin-top:18px">
+    {% if form %}
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div style="margin-top:10px">
+          <button class="btn btn-primary" type="submit">إرسال</button>
+        </div>
+      </form>
+    {% else %}
+      <p>نموذج التواصل غير متوفر حالياً.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

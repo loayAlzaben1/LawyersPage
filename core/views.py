@@ -1,6 +1,11 @@
 from django.shortcuts import render, redirect
 from .models import Service, Case, SiteStats, Category, Tag
-from blog.models import LawyerCard, BlogPost
+# blog app removed: avoid direct imports. We'll attempt an import at runtime to keep backward compatibility.
+try:
+    from blog.models import LawyerCard, BlogPost  # type: ignore
+except Exception:
+    LawyerCard = None
+    BlogPost = None
 from .forms import AppointmentForm, ContactForm
 from django.core.mail import send_mail
 from django.conf import settings
@@ -12,8 +17,22 @@ import json
 
 def home(request):
     services = Service.objects.all().order_by('order')
-    lawyers = LawyerCard.objects.filter(is_active=True).order_by('order')[:12]
-    latest_posts = BlogPost.objects.filter(published_at__isnull=False).order_by('-published_at')[:3]
+    # Prefer rich LawyerProfile in core.models; fall back to lightweight LawyerCard if available
+    try:
+        from .models import LawyerProfile
+    except Exception:
+        LawyerProfile = None
+
+    if LawyerProfile:
+        lawyers = LawyerProfile.objects.all()[:12]
+    elif LawyerCard:
+        lawyers = LawyerCard.objects.filter(is_active=True).order_by('order')[:12]
+    else:
+        lawyers = []
+    if BlogPost:
+        latest_posts = BlogPost.objects.filter(published_at__isnull=False).order_by('-published_at')[:3]
+    else:
+        latest_posts = []
 
     site_stats = None
     try:
@@ -155,6 +174,33 @@ def case_detail(request, pk):
         raise Http404()
     liked_cases = set(int(x) for x in request.session.get('liked_cases', []) if str(x).isdigit())
     return render(request, 'core/case_detail.html', {'case': c, 'liked_cases': liked_cases})
+
+
+def lawyer_detail(request, pk):
+    """Show a lawyer profile.
+
+    Prefer the richer `LawyerProfile` model in `core`. If it's not present, fall
+    back to the lightweight `LawyerCard` (if available).
+    """
+    # Try core.LawyerProfile first
+    try:
+        from .models import LawyerProfile
+    except Exception:
+        LawyerProfile = None
+
+    profile = None
+    if LawyerProfile:
+        profile = LawyerProfile.objects.filter(pk=pk).first()
+
+    if not profile:
+        # Fall back to LawyerCard (imported earlier if available)
+        if LawyerCard:
+            profile = LawyerCard.objects.filter(pk=pk, is_active=True).first()
+
+    if not profile:
+        raise Http404()
+
+    return render(request, 'core/lawyer_detail.html', {'lawyer': profile})
 
 
 @require_POST

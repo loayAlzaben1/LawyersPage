@@ -6,6 +6,23 @@
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'blog/css/blog.css' %}">
   <script src="{% static 'blog/js/readmore.js' %}"></script>
+  <style>
+    /* Page-specific responsive fixes for blog index */
+    .hero-article{ align-items:flex-start; }
+    .hero-media{ flex:0 0 auto }
+    .hero-body{ min-width:0 }
+    .hero-title{ word-break:break-word }
+    .posts-search-wrap{ min-width:260px }
+
+    @media (max-width:720px){
+      .hero-article{ flex-direction:column; padding:12px }
+      .hero-title{ font-size:1.4rem }
+      .hero-media{ width:100%; max-width:420px; }
+      .hero-actions a, .hero-actions button{ display:block; width:100%; box-sizing:border-box; margin-bottom:8px }
+      .posts-search-wrap{ min-width:0; width:100% }
+      .hero-placeholder{ aspect-ratio: 16/10 }
+    }
+  </style>
   {# loadmore will be loaded at the end of body to avoid blocking render #}
 {% endblock %}
 
@@ -20,14 +37,14 @@
   {# Hero featured article: use the first post if present #}
   {% if posts and posts|length > 0 %}
     {% with hero=posts.0 %}
-  <section class="hero-article mb-4" style="display:flex;gap:20px;align-items:flex-start;padding:18px;border-radius:10px;border:1px solid var(--card-border, rgba(0,0,0,0.04));background:var(--card-bg,#fff);">
-        <div class="hero-media" style="flex:0 0 420px">
+  <section class="hero-article mb-4" style="display:flex;gap:20px;align-items:flex-start;padding:18px;border-radius:10px;border:1px solid var(--card-border, rgba(0,0,0,0.04));background:var(--card-bg,#fff);flex-wrap:wrap">
+        <div class="hero-media" style="flex:0 0 420px;max-width:100%">
           {% if hero.processed_og_image_large or hero.processed_og_image_medium or hero.processed_og_image_small %}
-            <img src="{% if hero.processed_og_image_large %}{{ hero.processed_og_image_large.url }}{% elif hero.processed_og_image_medium %}{{ hero.processed_og_image_medium.url }}{% else %}{{ hero.processed_og_image_small.url }}{% endif %}" loading="lazy" alt="{{ hero.title }}" style="width:420px;height:260px;object-fit:cover;border-radius:8px;">
+            <img src="{% if hero.processed_og_image_large %}{{ hero.processed_og_image_large.url }}{% elif hero.processed_og_image_medium %}{{ hero.processed_og_image_medium.url }}{% else %}{{ hero.processed_og_image_small.url }}{% endif %}" loading="lazy" alt="{{ hero.title }}" style="width:100%;max-width:420px;height:auto;object-fit:cover;border-radius:8px;">
           {% elif hero.featured_image %}
-            <img src="{{ hero.featured_image.url }}" loading="lazy" alt="{{ hero.title }}">
+            <img src="{{ hero.featured_image.url }}" loading="lazy" alt="{{ hero.title }}" style="width:100%;height:auto;max-width:420px;border-radius:8px;object-fit:cover">
           {% else %}
-            <div class="hero-placeholder" style="width:420px;height:260px;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,color-mix(in srgb, var(--card-bg,#f3f4f6) 88%, var(--bg,#fff) 12%), color-mix(in srgb, var(--card-bg,#eef2ff) 88%, var(--bg,#fff) 12%));color:var(--muted-text,#6b7280);border-radius:8px;font-weight:700;">{{ hero.category.name|default:'مقال' }}</div>
+            <div class="hero-placeholder" style="width:100%;max-width:420px;height:auto;aspect-ratio:420/260;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,color-mix(in srgb, var(--card-bg,#f3f4f6) 88%, var(--bg,#fff) 12%), color-mix(in srgb, var(--card-bg,#eef2ff) 88%, var(--bg,#fff) 12%));color:var(--muted-text,#6b7280);border-radius:8px;font-weight:700;">{{ hero.category.name|default:'مقال' }}</div>
           {% endif %}
         </div>
         <div class="hero-body" style="flex:1">
@@ -53,7 +70,7 @@
 
   <div class="row g-4" id="cards-container">
     <div style="width:100%;display:flex;justify-content:flex-end;margin-bottom:8px">
-      <div style="min-width:260px">
+      <div class="posts-search-wrap" style="min-width:260px">
         <label for="postsSearch" class="sr-only">بحث المقالات</label>
         <div class="input-group">
           <input id="postsSearch" class="form-control" placeholder="ابحث في عناوين المقالات..." aria-label="ابحث في عناوين المقالات" />
