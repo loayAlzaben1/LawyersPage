@@ -1,8 +1,34 @@
 {% extends 'base.html' %}
 {% block title %}تفاصيل القضية - {{ case.title }}{% endblock %}
 {% block content %}
-<article style="background:#fff;padding:18px;border-radius:8px;border:1px solid rgba(11,45,77,0.04)">
-    <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+<style>
+/* Improved inline responsive rules for case detail */
+.wide-content {
+    background: #fff;
+    padding: 18px;
+    border-radius: 8px;
+    border: 1px solid rgba(11,45,77,0.04);
+    max-width: 1000px;
+    margin: 0 auto;
+}
+.wide-content img { max-width: 100%; height: auto; display: block; }
+.wide-content .case-header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+.wide-content .case-row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start; margin-top:12px; }
+.wide-content .case-image { flex: 0 0 300px; width: 300px; max-width:100%; }
+.wide-content .case-body { flex: 1 1 0; min-width: 0; }
+.wide-content .case-meta { color: #6c757d; font-size: 0.9rem; }
+.wide-content .case-summary { margin-top:12px; white-space: normal; word-break: normal; overflow-wrap: anywhere; line-height:1.7; direction: rtl; text-align: right; }
+.wide-content .case-gallery { display:flex; gap:8px; flex-wrap:wrap; }
+.wide-content .case-gallery .thumb { width:150px; max-width:100%; }
+.wide-content .case-docs { max-width:100%; overflow-x:auto; }
+@media (max-width:600px){
+    .wide-content { padding:12px; }
+    .wide-content .case-image { flex: 0 0 100%; width:100%; }
+    .wide-content .case-gallery .thumb { width:48%; }
+}
+</style>
+<article class="wide-content">
+    <header class="case-header">
         <div>
             <h1 style="margin:0">{{ case.title }}</h1>
             <div class="small text-muted">{{ case.case_date|default:case.created_at.date }}</div>
@@ -25,20 +51,20 @@
         </div>
     </header>
 
-    <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
+    <div class="case-row">
         {% if case.image %}
-            <div style="flex:0 0 300px;max-width:100%"><img src="{{ case.image.url }}" alt="{{ case.title }}" style="width:100%;max-width:300px;height:auto;object-fit:cover;border-radius:6px;" loading="lazy"></div>
+            <div class="case-image"><img src="{{ case.image.url }}" alt="{{ case.title }}" style="object-fit:cover;border-radius:6px;" loading="lazy"></div>
         {% endif %}
-        <div style="flex:1;min-width:0">
-            <div class="small text-muted">{{ case.case_type }} • {{ case.outcome }} • {{ case.client_initials }}</div>
-            <div style="margin-top:12px;word-break:break-word">{{ case.summary|linebreaks }}</div>
+        <div class="case-body">
+            <div class="case-meta small text-muted">{{ case.case_type }} • {{ case.outcome }} • {{ case.client_initials }}</div>
+            <div class="case-summary">{{ case.summary|linebreaks }}</div>
 
             {% if case.images.all %}
                 <section style="margin-top:16px">
                     <h4>معرض الصور</h4>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <div class="case-gallery">
                         {% for img in case.images.all %}
-                            <div style="width:150px;max-width:100%"><img src="{{ img.image.url }}" alt="{{ img.caption }}" style="width:100%;max-width:150px;height:auto;object-fit:cover;border-radius:6px;" loading="lazy"></div>
+                            <div class="thumb"><img src="{{ img.image.url }}" alt="{{ img.caption }}" style="object-fit:cover;border-radius:6px;" loading="lazy"></div>
                         {% endfor %}
                     </div>
                 </section>
