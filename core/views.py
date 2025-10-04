@@ -23,11 +23,18 @@ def home(request):
     except Exception:
         LawyerProfile = None
 
-    if LawyerProfile:
-        lawyers = LawyerProfile.objects.all()[:12]
-    elif LawyerCard:
-        lawyers = LawyerCard.objects.filter(is_active=True).order_by('order')[:12]
-    else:
+    lawyers = []
+    # Prefer core.LawyerProfile if it exists and has entries; otherwise fall back
+    # to the legacy blog.LawyerCard (if available). This avoids a situation
+    # where an empty LawyerProfile table prevents showing active LawyerCard
+    # records that may exist on deployed sites.
+    try:
+        if LawyerProfile and LawyerProfile.objects.exists():
+            lawyers = LawyerProfile.objects.all()[:12]
+        elif LawyerCard and LawyerCard.objects.filter(is_active=True).exists():
+            lawyers = LawyerCard.objects.filter(is_active=True).order_by('order')[:12]
+    except Exception:
+        # If anything goes wrong querying the DB, fall back to an empty list
         lawyers = []
     if BlogPost:
         latest_posts = BlogPost.objects.filter(published_at__isnull=False).order_by('-published_at')[:3]
