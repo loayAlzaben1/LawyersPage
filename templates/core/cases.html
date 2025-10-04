@@ -1,6 +1,18 @@
 {% extends 'base.html' %}
 {% block title %}قضايا موكلة - {{ SITE_NAME }}{% endblock %}
 {% block content %}
+<style>
+/* Inline responsive rules for Cases page */
+.cases-list { display:flex; flex-direction:column; gap:16px }
+.card-like { display:flex; gap:12px; align-items:flex-start; padding:12px; border-radius:8px; background:#fff; flex-wrap:wrap }
+.card-like img { max-width:100%; height:auto; object-fit:cover; border-radius:6px }
+.card-like .small { word-wrap:break-word; overflow-wrap:anywhere }
+.card-like p { margin-top:8px; word-wrap:break-word; overflow-wrap:anywhere }
+.card-like > div { min-width:0 }
+.case-docs { display:flex; gap:8px; flex-wrap:wrap; max-width:100%; overflow-x:auto }
+.case-docs a { white-space:normal; word-break:break-word; overflow-wrap:anywhere }
+@media (max-width:480px){ .card-like{ flex-direction:column; align-items:flex-start } .card-like div[style*="flex:0 0 120px"]{ width:100% } }
+</style>
 <h2>قضايا موكلة ناجحة</h2>
 {% load num_filters %}
 <p class="small text-muted">إجمالي القضايا المعروضة: {{ count|thousand_sep }}</p>
@@ -39,7 +51,7 @@
     </div>
 </div>
 
-<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-direction:column;gap:16px" class="cases-list">
     {% for c in cases %}
         {% with cat_class=c.category.name|default_if_none:''|slugify %}
     <div class="card-like {% if cat_class %}card--cat-{{ cat_class }}{% endif %}" style="display:flex;gap:12px;align-items:flex-start;padding:12px;" data-title="{{ c.title|lower }}" data-desc="{{ c.summary|striptags|lower }}">
@@ -54,7 +66,7 @@
                 <div class="small text-muted">{{ c.case_type }} • {{ c.outcome }} • {{ c.client_initials }}</div>
                 <p style="margin-top:8px">{{ c.summary|truncatechars:220 }}</p>
                 {% if c.documents.all %}
-                    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+                    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap" class="case-docs">
                         {% for d in c.documents.all %}
                             <a href="{{ d.file.url }}" target="_blank" class="badge-soft">{{ d.title|default:d.file.name }}</a>
                         {% endfor %}
