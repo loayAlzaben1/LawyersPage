@@ -2,7 +2,7 @@
 (async function(){
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
   try{
-    const reg = await navigator.serviceWorker.register('/static/sw.js');
+  const reg = await navigator.serviceWorker.register('/static/service-worker.js');
     console.log('ServiceWorker registered', reg);
     // Fetch VAPID public key from backend
     const r = await fetch('/webpush/vapid-public-key/');
