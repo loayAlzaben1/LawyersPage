@@ -13,6 +13,12 @@ from django.http import JsonResponse, Http404
 from django.views.decorators.http import require_POST
 from django.db.models import F
 import json
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.conf import settings
+from django.http import HttpResponse
+from .models import WebPushSubscription
+import base64
 
 
 def home(request):
@@ -208,6 +214,53 @@ def lawyer_detail(request, pk):
         raise Http404()
 
     return render(request, 'core/lawyer_detail.html', {'lawyer': profile})
+
+
+@require_http_methods(["GET"])
+def vapid_public_key(request):
+    """Return the VAPID public key (base64) to the frontend so it can subscribe."""
+    key = getattr(settings, 'VAPID_PUBLIC_KEY', None)
+    if not key:
+        return HttpResponse(status=404)
+    return HttpResponse(key)
+
+
+@csrf_exempt
+@require_POST
+def save_subscription(request):
+    """Save a push subscription posted from the browser.
+
+    Expected JSON body: { endpoint: ..., keys: { p256dh: ..., auth: ... } }
+    """
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        endpoint = data.get('endpoint')
+        keys = data.get('keys') or {}
+        p256dh = keys.get('p256dh')
+        auth_key = keys.get('auth')
+        if not endpoint or not p256dh or not auth_key:
+            return JsonResponse({'error': 'invalid_subscription'}, status=400)
+        sub, created = WebPushSubscription.objects.update_or_create(
+            endpoint=endpoint,
+            defaults={'p256dh': p256dh, 'auth': auth_key}
+        )
+        return JsonResponse({'status': 'ok', 'created': created})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def delete_subscription(request):
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        endpoint = data.get('endpoint')
+        if not endpoint:
+            return JsonResponse({'error': 'missing_endpoint'}, status=400)
+        WebPushSubscription.objects.filter(endpoint=endpoint).delete()
+        return JsonResponse({'status': 'deleted'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @require_POST

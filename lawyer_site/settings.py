@@ -166,3 +166,12 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'DENY')
 
+# Web Push (VAPID) settings - generate a VAPID keypair and set these in environment
+# You can generate keys using `pywebpush` or `web-push` tools. Example (node):
+#   npx web-push generate-vapid-keys --json
+# Then set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY as environment variables.
+VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY')
+VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY')
+VAPID_CLAIMS_SUBJECT = os.getenv('VAPID_CLAIMS_SUBJECT', 'mailto:admin@example.com')
+DEFAULT_NOTIFICATION_ICON = os.getenv('DEFAULT_NOTIFICATION_ICON', '/static/img/android-chrome-192x192.png')
+

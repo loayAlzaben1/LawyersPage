@@ -1,6 +1,7 @@
 from django.db import models
 from parler.models import TranslatableModel, TranslatedFields
 from .validators import validate_file_size, validate_file_extension
+from django.conf import settings
 
 
 class LawyerProfile(TranslatableModel):
@@ -157,4 +158,19 @@ class CaseImage(models.Model):
 
     def __str__(self):
         return self.caption or (self.image.name if self.image else 'صورة')
+
+
+class WebPushSubscription(models.Model):
+    """Stores a browser push subscription for use with Web Push (VAPID).
+
+    Fields follow the standard PushSubscription shape: endpoint and keys (p256dh, auth).
+    """
+    endpoint = models.TextField(unique=True)
+    p256dh = models.CharField(max_length=255)
+    auth = models.CharField(max_length=255)
+    user = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Subscription {self.pk} - {self.endpoint[:60]}"
 
