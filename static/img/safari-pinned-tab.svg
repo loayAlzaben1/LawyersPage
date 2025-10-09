@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="LawyersPage Pinned">
-  <title>LawyersPage</title>
-  <!-- Safari pinned tab uses currentColor; keep background transparent -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Scales of Justice Pinned">
+  <title>Scales of Justice</title>
+  <!-- Monochrome icon for pinned tab (uses currentColor) -->
   <g fill="currentColor">
-    <text x="50%" y="54%" text-anchor="middle" font-family="Tajawal, Arial, Helvetica, sans-serif" font-weight="700" font-size="220">LP</text>
+    <rect x="232" y="96" width="48" height="220" rx="6" />
+    <rect x="208" y="320" width="96" height="20" rx="6" />
+    <rect x="128" y="96" width="256" height="16" rx="8" />
+    <path d="M160 112 L160 144 A64 64 0 0 1 96 208 L96 216 A8 8 0 0 0 104 224 L152 224 A8 8 0 0 0 160 216 L160 208 A64 64 0 0 1 160 112 Z" />
+    <path d="M352 112 L352 144 A64 64 0 0 0 416 208 L416 216 A8 8 0 0 1 408 224 L360 224 A8 8 0 0 1 352 216 L352 208 A64 64 0 0 0 352 112 Z" />
+    <path d="M160 112 L136 152" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none" />
+    <ellipse cx="136" cy="174" rx="36" ry="14" />
+    <path d="M352 112 L376 152" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none" />
+    <ellipse cx="376" cy="174" rx="36" ry="14" />
   </g>
 </svg>
