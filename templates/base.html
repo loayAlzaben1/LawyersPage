@@ -7,8 +7,18 @@
   <title>{% block title %}موقع {{ SITE_NAME }}{% endblock %}</title>
   <meta name="description" content="{{ SITE_DESCRIPTION }}">
   <!-- Favicons -->
+  <!-- SVG fallback (keeps existing behavior) -->
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
   <link rel="shortcut icon" href="{% static 'img/favicon.svg' %}">
+  <!-- PNG favicons for broader support -->
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
+  <!-- Safari pinned tab -->
+  <link rel="mask-icon" href="{% static 'img/safari-pinned-tab.svg' %}" color="#0d6efd">
+  <!-- Web App manifest for add-to-home-screen behavior -->
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <meta name="theme-color" content="#0d6efd">
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   {% if post %}
