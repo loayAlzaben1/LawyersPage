@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="LawyersPage Pinned">
+  <title>LawyersPage</title>
+  <!-- Safari pinned tab uses currentColor; keep background transparent -->
+  <g fill="currentColor">
+    <text x="50%" y="54%" text-anchor="middle" font-family="Tajawal, Arial, Helvetica, sans-serif" font-weight="700" font-size="220">LP</text>
+  </g>
+</svg>
