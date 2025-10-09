@@ -747,6 +747,19 @@
   });
 </script>
 <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/static/service-worker.js')
+      .then(function(reg) {
+        console.log('Service Worker registered with scope:', reg.scope);
+      })
+      .catch(function(err) {
+        console.log('Service Worker registration failed:', err);
+      });
+    });
+  }
+</script>
+<script>
   // Theme manager: supports 'light'|'dark'|'auto'
   // - Default when no saved selection: light (no class on root)
   // - 'dark': force dark (add .theme-dark)
