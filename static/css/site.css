@@ -51,3 +51,34 @@ body { background: var(--bg); color: var(--text); }
 .profile-section { background:var(--card-bg); border:1px solid var(--card-border); padding:16px; border-radius:10px; box-shadow:0 8px 24px rgba(11,45,77,0.04) }
 
 @media (max-width:900px){ .lawyer-profile{ grid-template-columns: 1fr; } .lawyer-photo{ order: -1 } }
+
+/* Responsive safety rules: prevent horizontal overflow and wrap long words */
+html, body { max-width: 100%; }
+
+/* Force long words/text to wrap on small screens */
+p, li, span, h1, h2, h3, h4, h5, h6, td, th, .card, .case-card, .case-summary, .case-title {
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	white-space: normal;
+}
+
+/* Ensure containers don't exceed viewport */
+.card, .case-card, .table-responsive, .cases-list, .case-item {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+/* Provide safe horizontal scrolling for wide content (tables, galleries) */
+.table-responsive, .wide-content, .case-docs, .case-gallery {
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+/* Images inside cards: scale down to container */
+.card img, .case-card img, img.responsive { max-width: 100%; height: auto; display: block; object-fit: cover }
+
+@media (max-width:480px) {
+	.case-card { padding: 10px }
+	.case-card .title { font-size: 1rem }
+}

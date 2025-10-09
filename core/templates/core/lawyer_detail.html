@@ -1,6 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}{% if lawyer.full_name %}{{ lawyer.full_name }}{% elif lawyer.name %}{{ lawyer.name }}{% else %}{{ lawyer }}{% endif %} - {{ SITE_NAME }}{% endblock %}
 {% block content %}
+<style>
+/* Inline lawyer detail fallback styles */
+.lawyer-profile{ max-width:980px; margin:0 auto; padding:20px; display:grid; grid-template-columns:260px 1fr; gap:20px }
+.lawyer-photo img{ width:100%; height:auto; object-fit:cover; border-radius:12px }
+.profile-section{ padding:12px; border-radius:8px }
+@media(max-width:900px){ .lawyer-profile{ grid-template-columns:1fr } .lawyer-photo{ order:-1 } }
+</style>
 <div class="container">
   <div class="lawyer-profile">
     <div class="lawyer-photo">
