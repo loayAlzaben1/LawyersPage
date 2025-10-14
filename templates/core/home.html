@@ -1,10 +1,24 @@
 {% extends 'base.html' %}
 {% block title %}الرئيسية - موقع {{ SITE_NAME }}{% endblock %}
+{% block extra_meta %}
+    {% if hero_image_url %}
+        <link rel="preload" as="image" href="{{ hero_image_url }}">
+    {% endif %}
+{% endblock %}
 {% block content %}
 <div class="hero text-center mb-4">
-    <h1>خدمات قانونية متخصصة بثقة ومهنية</h1>
-    <p>محامية أردنية بخبرة في تقديم استشارات وتمثيل قانوني شامل.</p>
-    <a class="btn primary-btn" href="/appointment/">احجز موعداً الآن</a>
+        {% if hero_image_url %}
+            <style>
+                .hero { background-image: linear-gradient(rgba(0,0,0,0.28), rgba(0,0,0,0.18)), url('{{ hero_image_url }}'); background-size: cover; background-position: center; color: #fff; }
+                .hero .primary-btn { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.12); }
+            </style>
+        {% endif %}
+        <h1>خدمات قانونية متخصصة بثقة ومهنية</h1>
+        <p>محامية أردنية بخبرة في تقديم استشارات وتمثيل قانوني شامل.</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+                <a class="btn primary-btn" href="/appointment/">احجز موعداً الآن</a>
+                <a class="btn" href="/contact/" style="background:transparent;border:1px solid rgba(11,45,77,0.06);">اتصل بنا</a>
+        </div>
 </div>
 
 {# Include lawyer cards if available #}
@@ -17,11 +31,12 @@
 
 <section class="services-section mb-4">
     <h3 style="margin-bottom:12px">خدماتنا</h3>
-    <div style="display:flex;flex-wrap:wrap;gap:16px;">
+    <div class="row gy-3">
         {% for s in services %}
-    <div class="service-card" style="flex:1 1 calc(33% - 16px);min-width:220px;">
-            <div>
-                <h4 style="margin:0 0 8px 0;font-size:1.05rem;display:flex;align-items:center;gap:10px">
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="service-card p-3 h-100">
+                <div>
+                    <h4 style="margin:0 0 8px 0;font-size:1.05rem;display:flex;align-items:center;gap:10px">
                                         {% if s.slug == 'consultations' %}
                                                 <span class="icon-badge icon-blue" aria-hidden="true" {% if forloop.counter == 1 %}style="animation-delay:0s"{% elif forloop.counter == 2 %}style="animation-delay:0.18s"{% elif forloop.counter == 3 %}style="animation-delay:0.36s"{% endif %}>
                                                     <!-- headphone SVG -->
@@ -46,8 +61,10 @@
                 </h4>
                 <p style="margin:0;color:var(--muted-text)">{{ s.description|default:'وصف الخدمة' }}</p>
             </div>
-            <div style="margin-top:12px;display:flex;justify-content:flex-end">
-                <a class="btn" href="/appointment/?service={{ s.slug }}" style="padding:8px 12px;border-radius:6px;background:var(--brand);color:var(--on-brand);text-decoration:none">اختر الخدمة</a>
+                    <div style="margin-top:12px;display:flex;justify-content:flex-end">
+                        <a class="btn" href="/appointment/?service={{ s.slug }}" style="padding:8px 12px;border-radius:6px;background:var(--brand);color:var(--on-brand);text-decoration:none">اختر الخدمة</a>
+                    </div>
+                </div>
             </div>
         </div>
         {% empty %}
@@ -55,6 +72,96 @@
         {% endfor %}
     </div>
 </section>
+
+{# JSON data for client-side interactions #}
+<script id="home_reviews" type="application/json">{{ reviews_json|safe }}</script>
+
+<!-- Modal to show full review -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reviewModalLabel">Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reviewModalBody"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="prevReview">السابق</button>
+                <button type="button" class="btn btn-primary" id="nextReview">التالي</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Review slide entrance animation */
+    .review-slide { opacity: 0; transform: translateY(8px) scale(.995); transition: all .44s cubic-bezier(.2,.9,.2,1); }
+    .review-slide.in-view { opacity: 1; transform: none; }
+    .review-card:focus, .review-card:hover { box-shadow: 0 12px 36px rgba(11,45,77,0.12); transform: translateY(-6px) scale(1.01); }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    var reviews = JSON.parse(document.getElementById('home_reviews').textContent || '[]');
+    var modalEl = document.getElementById('reviewModal');
+    var modalBody = document.getElementById('reviewModalBody');
+    var bsModal = null;
+    try { bsModal = new bootstrap.Modal(modalEl); } catch(e){ bsModal = null; }
+
+    function showReview(i){
+        if (!reviews || !reviews.length) return;
+        i = Math.max(0, Math.min(reviews.length-1, i||0));
+        var r = reviews[i];
+        document.getElementById('reviewModalLabel').textContent = r.name + ' — ' + r.stars;
+        modalBody.textContent = '';
+        var p = document.createElement('p'); p.textContent = r.text; modalBody.appendChild(p);
+        if (bsModal) bsModal.show();
+        modalEl.setAttribute('data-current', i);
+    }
+
+    // attach click handlers
+    document.querySelectorAll('.review-card, .read-more').forEach(function(el){
+        el.addEventListener('click', function(e){ e.preventDefault(); var idx = parseInt(el.getAttribute('data-index')||el.dataset.index||0,10); showReview(idx); });
+    });
+
+    // next/prev buttons
+    document.getElementById('nextReview').addEventListener('click', function(){ var cur = parseInt(modalEl.getAttribute('data-current')||0,10); showReview(cur+1); });
+    document.getElementById('prevReview').addEventListener('click', function(){ var cur = parseInt(modalEl.getAttribute('data-current')||0,10); showReview(cur-1); });
+
+    // Keyboard left/right when modal is open
+    document.addEventListener('keydown', function(e){ if (!modalEl.classList.contains('show')) return; if (e.key === 'ArrowRight') { document.getElementById('nextReview').click(); } else if (e.key === 'ArrowLeft') { document.getElementById('prevReview').click(); } });
+
+    // IntersectionObserver to add entrance animation class
+    var obs = new IntersectionObserver(function(entries){ entries.forEach(function(ent){ if (ent.isIntersecting) ent.target.classList.add('in-view'); }); }, { threshold: 0.25 });
+    document.querySelectorAll('.review-slide').forEach(function(sl){ obs.observe(sl); });
+  
+        // Auto-advance carousel using per-slide data-bs-interval values.
+        (function(){
+            var carouselEl = document.getElementById('testimonialsCarousel');
+            if (!carouselEl) return;
+            var Carousel = window.bootstrap && window.bootstrap.Carousel;
+            if (!Carousel) return;
+            var carousel = bootstrap.Carousel.getOrCreateInstance(carouselEl, { ride: false, pause: false, touch: true });
+            var paused = false;
+            carouselEl.addEventListener('mouseenter', function(){ paused = true; });
+            carouselEl.addEventListener('mouseleave', function(){ paused = false; });
+
+            function scheduleNext(){
+                if (paused) { setTimeout(scheduleNext, 500); return; }
+                var active = carouselEl.querySelector('.carousel-item.active');
+                var interval = parseInt(active && (active.dataset.bsInterval || active.getAttribute('data-bs-interval')) || 5000, 10) || 5000;
+                setTimeout(function(){
+                    if (!paused) carousel.next();
+                    scheduleNext();
+                }, interval);
+            }
+            // Start the loop after a short delay so initial render completes
+            setTimeout(scheduleNext, 600);
+        })();
+});
+</script>
 
 {# Counters (cases won, years experience) - use site_stats if available, else defaults #}
 <div style="margin-top:18px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap">
@@ -70,28 +177,73 @@
     </div>
 </div>
 
+{% if featured_cases and featured_cases|length > 0 %}
+<section class="featured-cases mt-4 mb-4">
+    <h3 style="margin-bottom:12px">قضايا مختارة</h3>
+    <div class="row gy-3">
+        {% for c in featured_cases %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="{% url 'core:case_detail' c.pk %}" style="text-decoration:none;color:inherit">
+            <div class="card" style="height:100%">
+                {% if c.image %}
+                <img src="{{ c.image.url }}" alt="{{ c.title }}" loading="lazy" fetchpriority="low" style="object-fit:cover;height:160px;width:100%;border-top-left-radius:6px;border-top-right-radius:6px;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ c.title }}</h5>
+                    <p class="card-text text-muted">{{ c.summary|truncatechars:120 }}</p>
+                </div>
+            </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
 {# Blog removed: latest posts preview intentionally omitted #}
 
-{# Testimonials (static fallback) #}
+{# Testimonials (carousel) #}
 <section class="testimonials mb-4" style="margin-top:18px">
-    <h3 style="margin-bottom:12px">آراء العملاء</h3>
-    <div class="testimonial-list" style="display:flex;flex-wrap:wrap;gap:12px;">
-    <div class="testimonial-item" style="flex:1 1 300px;padding:14px;border-radius:10px;border:1px solid var(--card-border);background:var(--card-bg)"> 
-            <div style="font-weight:700">أ. سارة</div>
-            <div class="small text-muted">★★★★★</div>
-            <div style="margin-top:8px">محامية مهنية وموثوقة — خدمات سريعة وواضحة</div>
+        <h3 style="margin-bottom:12px">آراء العملاء</h3>
+        <div id="testimonialsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-pause="hover" data-bs-touch="true">
+            <div class="carousel-indicators">
+                {% for r in reviews %}
+                    <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ forloop.counter }}"></button>
+                {% empty %}
+                    <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                {% endfor %}
+            </div>
+            <div class="carousel-inner">
+                {% if reviews and reviews|length > 0 %}
+                            {% for r in reviews %}
+                                                <div class="carousel-item review-slide {% if forloop.first %}active in-view{% endif %}" data-bs-interval="{{ r.interval }}" data-index="{{ forloop.counter0 }}">
+                                                    <div class="testimonial-item review-card p-4 d-flex flex-column align-items-start" style="min-height:120px;border-radius:10px;border:1px solid var(--card-border);background:var(--card-bg);cursor:pointer" tabindex="0" role="button" data-index="{{ forloop.counter0 }}">
+                                                        <div style="font-weight:700">{{ r.name }}</div>
+                                                        <div class="small text-muted review-stars">{{ r.stars }}</div>
+                                                        <div class="review-excerpt" style="margin-top:8px">{{ r.text|truncatechars:180 }}</div>
+                                                        <div style="margin-top:8px"><a href="#" class="read-more" data-index="{{ forloop.counter0 }}">اقرأ المزيد</a></div>
+                                                    </div>
+                                                </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="carousel-item active">
+                        <div class="testimonial-item p-4 d-flex flex-column align-items-start" style="min-height:120px;border-radius:10px;border:1px solid var(--card-border);background:var(--card-bg)"> 
+                            <div style="font-weight:700">أ. سارة</div>
+                            <div class="small text-muted">★★★★★</div>
+                            <div style="margin-top:8px">محامية مهنية وموثوقة — خدمات سريعة وواضحة</div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">السابق</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">التالي</span>
+            </button>
         </div>
-    <div class="testimonial-item" style="flex:1 1 300px;padding:14px;border-radius:10px;border:1px solid var(--card-border);background:var(--card-bg)"> 
-            <div style="font-weight:700">م. أحمد</div>
-            <div class="small text-muted">★★★★★</div>
-            <div style="margin-top:8px">دعمتنا خطوة بخطوة حتى حققنا نتيجة ممتازة</div>
-        </div>
-    <div class="testimonial-item" style="flex:1 1 300px;padding:14px;border-radius:10px;border:1px solid var(--card-border);background:var(--card-bg)"> 
-            <div style="font-weight:700">ر. ندى</div>
-            <div class="small text-muted">★★★★★</div>
-            <div style="margin-top:8px">شرح واضح ومتابعة شخصية طوال القضية</div>
-        </div>
-    </div>
 </section>
 
 <script>

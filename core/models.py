@@ -160,6 +160,25 @@ class CaseImage(models.Model):
         return self.caption or (self.image.name if self.image else 'صورة')
 
 
+class Review(models.Model):
+    """Customer review used on the homepage carousel.
+
+    rating: 1-5 integer. Higher rating can be used to control slide duration.
+    """
+    name = models.CharField(max_length=140)
+    text = models.TextField()
+    rating = models.PositiveSmallIntegerField(default=5)
+    avatar = models.ImageField(upload_to='review_avatars/', blank=True, null=True)
+    is_published = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Review {self.pk} - {self.name} ({self.rating})"
+
+
 class WebPushSubscription(models.Model):
     """Stores a browser push subscription for use with Web Push (VAPID).
 
@@ -173,4 +192,43 @@ class WebPushSubscription(models.Model):
 
     def __str__(self):
         return f"Subscription {self.pk} - {self.endpoint[:60]}"
+
+
+class PushNotificationLog(models.Model):
+    """Simple log for push notification attempts.
+
+    Records whether an attempt to notify a subscription succeeded or failed,
+    plus optional HTTP response codes and error text for diagnosis.
+    """
+    subscription = models.ForeignKey(WebPushSubscription, null=True, blank=True, on_delete=models.SET_NULL)
+    blogpost_id = models.IntegerField(null=True, blank=True)
+    status = models.CharField(max_length=32, choices=(('sent', 'Sent'), ('failed', 'Failed')))
+    response_code = models.IntegerField(null=True, blank=True)
+    error_text = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"PushLog {self.pk} - {self.status} - post:{self.blogpost_id} sub:{self.subscription_id}"
+
+
+class Notification(models.Model):
+    """Simple DB-backed notification for clients that poll the server.
+
+    This is the fallback/simple alternative to Web Push when persistent
+    background workers or push delivery are not available.
+    """
+    user = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), null=True, blank=True, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification {self.pk} - {self.title} - user:{self.user_id}"
 

@@ -1,0 +1,22 @@
+ 
+ -------------- celery@DESKTOP-AU8S82S v5.5.3 (immunity)
+--- ***** ----- 
+-- ******* ---- Windows-11-10.0.26100-SP0 2025-10-12 16:56:29
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         lawyer_site:0x1c38c86bcb0
+- ** ---------- .> transport:   memory://localhost//
+- ** ---------- .> results:     disabled://
+- *** --- * --- .> concurrency: 20 (solo)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
+                
+
+[tasks]
+  . blog.tasks.process_og_images_task
+  . core.tasks.send_pushes_for_post
+  . core.tasks.send_pushes_to_subscriptions
+  . lawyer_site.celery.debug_task
+

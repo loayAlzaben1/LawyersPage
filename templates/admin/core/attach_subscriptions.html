@@ -1,0 +1,35 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div class="container" style="max-width:800px;">
+    <h1>{% trans "Attach Subscriptions to User" %}</h1>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="attach_sub_ids" value="{{ attach_sub_ids }}" />
+      <p>{% trans "Selected subscriptions:" %}</p>
+      <ul>
+        {% for s in subscriptions %}
+          <li>{{ s.short_endpoint|default:s.endpoint }} (id={{ s.id }})</li>
+        {% empty %}
+          <li>{% trans "No subscriptions selected" %}</li>
+        {% endfor %}
+      </ul>
+
+      <div class="form-row">
+        <label for="id_user">{% trans "Choose user to attach to" %}</label>
+        <select id="id_user" name="user_id" class="vLargeTextField">
+          <option value="">(None)</option>
+          {% for u in users %}
+            <option value="{{ u.pk }}">{{ u.username }} - {{ u.email }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="margin-top:1em;">
+        <button type="submit" class="default">{% trans "Attach subscriptions" %}</button>
+        <a href="{{ request.META.HTTP_REFERER|default:request.path }}">{% trans "Cancel" %}</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

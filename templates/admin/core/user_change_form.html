@@ -1,0 +1,14 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static %}
+
+{% block object-tools-items %}
+  {{ block.super }}
+  <li>
+    <form action="{% url 'admin:core_user_send_push' object_id %}" method="post" style="display:inline; margin-left:8px;">
+      {% csrf_token %}
+      <input type="text" name="title" placeholder="Title" style="width:220px; margin-right:6px;" />
+      <input type="text" name="body" placeholder="Message body" style="width:420px; margin-right:6px;" />
+      <button class="button" type="submit">Send notification</button>
+    </form>
+  </li>
+{% endblock %}

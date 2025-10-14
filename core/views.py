@@ -19,6 +19,10 @@ from django.conf import settings
 from django.http import HttpResponse
 from .models import WebPushSubscription
 import base64
+from django.views.decorators.http import require_GET
+from django.utils import timezone
+from .models import Notification
+from django.conf import settings
 
 
 def home(request):
@@ -53,11 +57,52 @@ def home(request):
     except Exception:
         site_stats = None
 
+    # featured cases for homepage (latest 3 published)
+    try:
+        featured_cases = Case.objects.filter(published=True).order_by('-case_date', '-created_at')[:3]
+    except Exception:
+        featured_cases = []
+    # customer reviews for homepage carousel
+    try:
+        from .models import Review
+        reviews_qs = Review.objects.filter(is_published=True).order_by('-rating', '-created_at')[:6]
+        reviews = []
+        for r in reviews_qs:
+            rating = int(getattr(r, 'rating', 5) or 5)
+            # base 3000ms plus 800ms per rating point for longer display on higher ratings
+            interval = 3000 + (rating * 800)
+            stars = '★' * rating + '☆' * max(0, 5 - rating)
+            reviews.append({'name': r.name, 'text': r.text, 'rating': rating, 'interval': interval, 'stars': stars})
+    except Exception:
+        reviews = []
+
+    # If there are fewer than 3 reviews, append friendly fallback testimonials so the
+    # carousel always has multiple slides to show.
+    if len(reviews) < 3:
+        fallback = [
+            {'name': 'أ. سارة', 'text': 'محامية مهنية وموثوقة — خدمات سريعة وواضحة', 'rating': 5, 'interval': 7000, 'stars': '★★★★★'},
+            {'name': 'م. أحمد', 'text': 'دعمتنا خطوة بخطوة حتى حققنا نتيجة ممتازة', 'rating': 5, 'interval': 7000, 'stars': '★★★★★'},
+            {'name': 'ر. ندى', 'text': 'شرح واضح ومتابعة شخصية طوال القضية', 'rating': 5, 'interval': 7000, 'stars': '★★★★★'},
+        ]
+        # add fallback testimonials until we reach 3 slides (but don't exceed 6 total)
+        i = 0
+        while len(reviews) < 3 and i < len(fallback):
+            reviews.append(fallback[i])
+            i += 1
+
+    import json as _json
+
+    reviews_json = _json.dumps(reviews, ensure_ascii=False)
+
     context = {
         'services': services,
         'lawyers': lawyers,
         'latest_posts': latest_posts,
         'site_stats': site_stats,
+        'featured_cases': featured_cases,
+        'hero_image_url': getattr(settings, 'HERO_IMAGE_URL', None),
+        'reviews': reviews,
+        'reviews_json': reviews_json,
     }
     return render(request, 'core/home.html', context)
 
@@ -240,11 +285,42 @@ def save_subscription(request):
         auth_key = keys.get('auth')
         if not endpoint or not p256dh or not auth_key:
             return JsonResponse({'error': 'invalid_subscription'}, status=400)
+        defaults = {'p256dh': p256dh, 'auth': auth_key}
+        # If user is authenticated, associate the subscription with that user
+        try:
+            if getattr(request, 'user', None) and request.user.is_authenticated:
+                defaults['user'] = request.user
+        except Exception:
+            pass
         sub, created = WebPushSubscription.objects.update_or_create(
             endpoint=endpoint,
-            defaults={'p256dh': p256dh, 'auth': auth_key}
+            defaults=defaults
         )
         return JsonResponse({'status': 'ok', 'created': created})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_POST
+def link_subscription_to_user(request):
+    """Attach an existing subscription (by endpoint) to the currently authenticated user.
+
+    POST body: { "endpoint": "..." }
+    Returns 200 on success.
+    """
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return JsonResponse({'error': 'authentication_required'}, status=403)
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        endpoint = data.get('endpoint')
+        if not endpoint:
+            return JsonResponse({'error': 'missing_endpoint'}, status=400)
+        sub = WebPushSubscription.objects.filter(endpoint=endpoint).first()
+        if not sub:
+            return JsonResponse({'error': 'subscription_not_found'}, status=404)
+        sub.user = request.user
+        sub.save(update_fields=['user'])
+        return JsonResponse({'status': 'linked'})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
@@ -342,3 +418,62 @@ def toggle_like(request):
     if len(processed) == 1:
         return JsonResponse(processed[0])
     return JsonResponse({'results': processed, 'liked_cases': list(liked_set)})
+
+
+@require_GET
+def get_notifications(request):
+    """Return unread notifications for the authenticated user as JSON."""
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return JsonResponse({'notifications': []})
+    qs = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:50]
+    data = list(qs.values('id', 'title', 'message', 'created_at'))
+    return JsonResponse({'notifications': data})
+
+
+@require_POST
+def mark_notifications_read(request):
+    """Mark a list of notification IDs as read for the current user.
+
+    Expects JSON body: { "ids": [1,2,3] }
+    Returns JSON: { updated: <count> }
+    """
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return JsonResponse({'error': 'authentication_required'}, status=403)
+    try:
+        body = request.body.decode('utf-8') if request.body else '{}'
+        data = json.loads(body or '{}')
+        ids = data.get('ids') or []
+        if not isinstance(ids, (list, tuple)):
+            return JsonResponse({'error': 'invalid_ids'}, status=400)
+        qs = Notification.objects.filter(user=request.user, id__in=ids, is_read=False)
+        updated = qs.update(is_read=True)
+        return JsonResponse({'updated': updated})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_GET
+def notifications_list(request):
+    """Return recent notifications (both read and unread) for the dropdown.
+
+    Returns JSON: { notifications: [{id, message, is_read, created_at, title}], unread_count: N }
+    """
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return JsonResponse({'notifications': [], 'unread_count': 0})
+    qs = Notification.objects.filter(user=request.user).order_by('-created_at')[:50]
+    data = list(qs.values('id', 'title', 'message', 'is_read', 'created_at'))
+    unread = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({'notifications': data, 'unread_count': unread})
+
+
+@require_POST
+def mark_all_read(request):
+    """Mark all unread notifications for current user as read."""
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return JsonResponse({'error': 'authentication_required'}, status=403)
+    try:
+        qs = Notification.objects.filter(user=request.user, is_read=False)
+        updated = qs.update(is_read=True)
+        return JsonResponse({'updated': updated})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

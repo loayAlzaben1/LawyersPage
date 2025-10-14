@@ -1,0 +1,4 @@
+[2025-10-12 16:56:29,958: WARNING/MainProcess] No hostname was supplied. Reverting to default 'localhost'
+[2025-10-12 16:56:29,992: WARNING/MainProcess] No hostname was supplied. Reverting to default 'localhost'
+[2025-10-12 16:56:29,994: INFO/MainProcess] Connected to memory://localhost//
+[2025-10-12 16:56:29,998: INFO/MainProcess] celery@DESKTOP-AU8S82S ready.

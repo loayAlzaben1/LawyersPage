@@ -83,13 +83,208 @@
   {% block extra_meta %}{% endblock %}
   <!-- Google Font Tajawal -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-  <!-- Bootstrap RTL CDN -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap 5 RTL CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet" integrity="" crossorigin="anonymous">
   <!-- Bootstrap Icons (centralized icon library) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <!-- local site css -->
   <link href="{% static 'css/site.css' %}" rel="stylesheet">
   <script src="{% static 'js/webpush.js' %}" defer></script>
+  <script>
+    // expose VAPID public key to client JS without extra fetch
+    {% if VAPID_PUBLIC_KEY %}
+    window.SITE_VAPID_PUBLIC_KEY = "{{ VAPID_PUBLIC_KEY|escapejs }}";
+    {% else %}
+    window.SITE_VAPID_PUBLIC_KEY = null;
+    {% endif %}
+  </script>
+  <script>
+    // Expose whether the current request is authenticated so client can re-link subscriptions after login
+    window.SITE_USER_AUTHENTICATED = {% if request.user.is_authenticated %}true{% else %}false{% endif %};
+  </script>
+  <style>
+    /* Toast container placement and responsive sizing */
+    .toast-container-custom{ position: fixed; top: 72px; left: 50%; transform: translateX(-50%); z-index: 1500; width: 100%; max-width: 420px; padding: 0 12px; }
+    @media (max-width:576px){ .toast-container-custom{ top: 64px; max-width: 100%; padding: 0 8px; left: 0; transform: none; } }
+    .nav-notif-badge{ position: absolute; top: 6px; right: 6px; font-size: 0.65rem; }
+  </style>
+
+  <script>
+    // DB-polling + Bootstrap 5 toasts for notifications (every 10s)
+    (function(){
+      if (!window.SITE_USER_AUTHENTICATED) return;
+
+      function getCookie(name){
+        var v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
+      }
+
+      // create toast container in DOM
+      var toastContainer = document.createElement('div');
+      toastContainer.className = 'toast-container-custom';
+      toastContainer.setAttribute('aria-live','polite');
+      toastContainer.setAttribute('aria-atomic','true');
+      document.body.appendChild(toastContainer);
+
+      // create bell icon in navbar
+      try{
+        var navUl = document.querySelector('#mainNav .navbar-nav');
+        if (navUl){
+          var li = document.createElement('li');
+          li.className = 'nav-item dropdown position-relative';
+          // dropdown menu will be filled dynamically
+          li.innerHTML = '\n            <a id="notifBell" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="الإشعارات">\n              <i class="bi bi-bell" style="font-size:1.18rem"></i>\n              <span id="notifBadge" class="badge rounded-pill bg-danger nav-notif-badge" style="display:none">0</span>\n            </a>\n            <div id="notifDropdown" class="dropdown-menu dropdown-menu-end p-2" style="min-width:320px;max-width:420px;">\n              <div class="d-flex justify-content-between align-items-center px-2">\n                <strong class="me-auto">الإشعارات</strong>\n                <button id="markAllReadBtn" class="btn btn-sm btn-link">وضع مقروء للجميع</button>\n              </div>\n              <div id="notifList" class="list-group list-group-flush mt-2" style="max-height:360px; overflow:auto">\n                <div class="text-muted small p-3">تحميل...</div>\n              </div>\n            </div>\n          ';
+          // insert before appointment item if present, otherwise append
+          var appointment = navUl.querySelector('.appointment-cta');
+          if (appointment && appointment.parentElement) navUl.insertBefore(li, appointment.parentElement);
+          else navUl.appendChild(li);
+
+          // markAllRead button wiring and dropdown fetch
+          var bell = document.getElementById('notifBell');
+          var dropdown = document.getElementById('notifDropdown');
+          var listEl = document.getElementById('notifList');
+          var markAllBtn = document.getElementById('markAllReadBtn');
+          function renderDropdownItems(items){
+            if (!listEl) return;
+            listEl.innerHTML = '';
+            if (!items || !items.length){ listEl.innerHTML = '<div class="text-muted small p-3">لا يوجد إشعارات</div>'; return; }
+            items.forEach(function(n){
+              var item = document.createElement('a');
+              item.href = '#';
+              item.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-start';
+              if (!n.is_read) item.classList.add('fw-bold');
+              item.innerHTML = '<div class="ms-2 me-auto">\n                  <div class="small text-truncate" style="max-width:260px">' + escapeHtml(n.message || '') + '</div>\n                  <small class="text-muted">' + timeAgo(n.created_at) + '</small>\n                </div>';
+              listEl.appendChild(item);
+            });
+          }
+
+          function fetchDropdown(){
+            fetch('{% url "core:notifications_list" %}', { credentials: 'same-origin' })
+            .then(function(r){ if (!r.ok) throw new Error('network'); return r.json(); })
+            .then(function(json){
+              renderDropdownItems(json.notifications || []);
+              // update badge with server unread_count
+              try{ var b = document.getElementById('notifBadge'); if (b){ var c = json.unread_count || 0; if (c>0){ b.style.display='inline-block'; b.textContent = c>99? '99+': String(c); } else { b.style.display='none'; } } }catch(e){}
+            }).catch(function(){ if (listEl) listEl.innerHTML = '<div class="text-muted small p-3">خطأ في التحميل</div>'; });
+          }
+
+          if (bell){
+            // fetch when dropdown is shown
+            bell.addEventListener('click', function(e){
+              // allow dropdown to toggle; fetch fresh notifications
+              setTimeout(fetchDropdown, 50);
+            });
+          }
+
+          if (markAllBtn){
+            markAllBtn.addEventListener('click', function(e){ e.preventDefault();
+              var csrftoken = getCookie('csrftoken');
+              fetch('{% url "core:notifications_mark_all_read" %}', { method:'POST', credentials:'same-origin', headers: { 'X-CSRFToken': csrftoken } })
+              .then(function(r){ if (!r.ok) throw new Error('network'); return r.json(); })
+              .then(function(json){
+                // refresh dropdown and badge
+                fetchDropdown();
+                // also remove any toasts from the toast container and update badge
+                try{ var toasts = toastContainer.querySelectorAll('.toast'); toasts.forEach(function(t){ if (t && t.parentNode) t.parentNode.removeChild(t); }); updateBadge(); }catch(e){}
+              }).catch(function(){ /* ignore */ });
+            });
+          }
+        }
+      }catch(e){}
+
+      // helper to render a bootstrap toast element
+      function renderToast(n){
+        var tpl = document.createElement('div');
+        tpl.className = 'toast shadow-lg mb-2';
+        tpl.setAttribute('role','status');
+        tpl.setAttribute('aria-live','polite');
+        tpl.setAttribute('tabindex','0');
+        // attach notification id so we can mark it read when dismissed
+        if (n && n.id !== undefined) tpl.setAttribute('data-notif-id', String(n.id));
+        tpl.innerHTML = '\n          <div class="toast-header">\n            <strong class="me-auto">' + escapeHtml(n.title || 'إشعار') + '</strong>\n            <small class="text-muted ms-2">' + timeAgo(n.created_at) + '</small>\n            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="إغلاق"></button>\n          </div>\n          <div class="toast-body text-break">' + escapeHtml(n.message || '') + '</div>\n        ';
+        return tpl;
+      }
+
+      function escapeHtml(s){ if (!s) return ''; return String(s).replace(/[&<>"'`]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c]); }); }
+
+      function timeAgo(iso){ try{ var d = new Date(iso); var diff = Math.floor((Date.now()-d.getTime())/1000); if (diff < 60) return diff + 's'; if (diff < 3600) return Math.floor(diff/60) + 'm'; if (diff < 86400) return Math.floor(diff/3600) + 'h'; return Math.floor(diff/86400) + 'd'; }catch(e){return '';} }
+
+      // store last seen ids to avoid duplicate rendering in this session
+      var seen = new Set();
+
+      function fetchNotifications(){
+        fetch('{% url "core:get_notifications" %}', { credentials: 'same-origin' })
+        .then(function(r){ if (!r.ok) throw new Error('network'); return r.json(); })
+        .then(function(data){
+          if (!data || !Array.isArray(data.notifications)) return;
+          var idsToMark = [];
+          var newItems = [];
+          data.notifications.forEach(function(n){
+            if (!seen.has(n.id)){
+              seen.add(n.id);
+              newItems.push(n);
+              idsToMark.push(n.id);
+            }
+          });
+          if (!newItems.length) return;
+
+          // limit to most recent 5
+          newItems = newItems.slice(0,5);
+
+          newItems.forEach(function(n){
+            var el = renderToast(n);
+            toastContainer.insertBefore(el, toastContainer.firstChild);
+            // init bootstrap toast and show
+            try{ var bs = bootstrap.Toast.getOrCreateInstance(el, { delay: 8000 }); bs.show(); }catch(e){}
+          });
+
+          // update badge
+          updateBadge();
+        }).catch(function(){ /* ignore network errors */ });
+      }
+
+      function updateBadge(){
+        try{
+          var b = document.getElementById('notifBadge');
+          // count only visible toasts
+          var count = toastContainer.querySelectorAll('.toast.show').length;
+          if (b){ if (count>0){ b.style.display='inline-block'; b.textContent = count>99? '99+': String(count); } else { b.style.display='none'; } }
+        }catch(e){}
+      }
+
+      function markRead(ids){
+        if (!ids || !ids.length) return;
+        var csrftoken = getCookie('csrftoken');
+        fetch('{% url "core:mark_notifications_read" %}', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+          body: JSON.stringify({ ids: ids })
+        }).then(function(r){ if (!r.ok) throw new Error('network'); return r.json(); }).then(function(json){
+          // success (nothing more to do — UI removed on hidden)
+        }).catch(function(){ /* ignore */ });
+      }
+
+      // initial fetch and poll every 10s
+      fetchNotifications();
+      setInterval(fetchNotifications, 10000);
+
+      // when a toast is dismissed (hidden.bs.toast), mark it read and remove it from the DOM, then update badge
+      document.addEventListener('hidden.bs.toast', function(e){
+        try{
+          var el = e && e.target;
+          if (!el) return;
+          var nid = el.getAttribute && el.getAttribute('data-notif-id');
+          if (nid){
+            markRead([ parseInt(nid, 10) ]);
+          }
+          // remove the element from DOM after a short tick
+          setTimeout(function(){ if (el && el.parentNode) el.parentNode.removeChild(el); updateBadge(); }, 80);
+        }catch(err){ }
+      }, false);
+
+    })();
+  </script>
   <script>
     // Early theme bootstrap: do NOT add any class when there's no saved selection (so default CSS :root = light).
     // If the user explicitly saved 'dark' we apply .theme-dark early. If the user saved 'auto', we apply
@@ -548,7 +743,7 @@
   <nav id="mainNav" class="navbar navbar-expand-lg navbar-light" role="navigation" aria-label="القائمة الرئيسية">
     <div class="container-fluid">
       <a class="navbar-brand" href="/">⚖️ المحامية ايمان النجار</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="تبديل التنقل">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="تبديل التنقل">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
@@ -590,6 +785,35 @@
     /* Toggler color: use brand-deep on light, and light color in dark theme */
     #mainNav.navbar-light .navbar-toggler{ color: var(--brand-deep); }
     .theme-dark #mainNav .navbar-toggler{ color: #ffffff; }
+  /* Animated mobile menu: fade/slide + staggered link reveal */
+    @media (max-width: 991px){
+      /* allow opacity/transform to animate alongside bootstrap's height transition */
+      #navbarNav{ transition: opacity .28s ease, transform .28s ease; }
+      #navbarNav.collapsing{ opacity: 0; transform: translateY(-6px); }
+      #navbarNav.collapse.show{ opacity: 1; transform: translateY(0); }
+
+      /* start links slightly offset and invisible; when .menu-open is present they'll reveal */
+      #navbarNav .nav-link{ opacity: 0; transform: translateX(12px); transition: transform .28s cubic-bezier(.2,.9,.2,1), opacity .22s ease; }
+      #navbarNav.menu-open .nav-link{ opacity: 1; transform: translateX(0); }
+
+      /* stagger delays for up to 8 nav items (graceful if fewer exist) */
+      #navbarNav.menu-open .navbar-nav .nav-item:nth-child(1) .nav-link{ transition-delay: .04s; }
+      #navbarNav.menu-open .navbar-nav .nav-item:nth-child(2) .nav-link{ transition-delay: .08s; }
+      #navbarNav.menu-open .navbar-nav .nav-item:nth-child(3) .nav-link{ transition-delay: .12s; }
+      #navbarNav.menu-open .navbar-nav .nav-item:nth-child(4) .nav-link{ transition-delay: .16s; }
+      #navbarNav.menu-open .navbar-nav .nav-item:nth-child(5) .nav-link{ transition-delay: .20s; }
+      #navbarNav.menu-open .navbar-nav .nav-item:nth-child(6) .nav-link{ transition-delay: .24s; }
+      #navbarNav.menu-open .navbar-nav .nav-item:nth-child(7) .nav-link{ transition-delay: .28s; }
+      #navbarNav.menu-open .navbar-nav .nav-item:nth-child(8) .nav-link{ transition-delay: .32s; }
+      /* toggler to X state */
+      .navbar-toggler{ transition: transform .22s ease; }
+      .navbar-toggler.is-open{ transform: rotate(0deg); }
+      .navbar-toggler.is-open .navbar-toggler-icon{ background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 4L20 20M20 4L4 20'/%3E%3C/svg%3E"); transform: rotate(0deg); }
+
+      /* backdrop that fades in behind the open menu on mobile */
+      .nav-backdrop{ position:fixed; inset:0; background:rgba(11,20,34,0.28); opacity:0; transition:opacity .28s ease; z-index:50; pointer-events:none }
+      .nav-backdrop.show{ opacity:1; pointer-events:auto }
+    }
   </style>
 
   <style>
@@ -616,8 +840,7 @@
 </footer>
 
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'vendor/bootstrap-loader.js' %}"></script>
 <script src="{% static 'js/file-input.js' %}"></script>
 <!-- Load local Fuse (recommended) - replace static/js/fuse.min.js with the official fuse.min.js for best fuzzy matching -->
 <script src="{% static 'js/fuse.min.js' %}"></script>
@@ -907,7 +1130,8 @@
     onScroll();
 
     // Collapse bootstrap menu on nav link click (mobile)
-    document.querySelectorAll('#navbarNav .nav-link').forEach(function(link){
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('#navbarNav .nav-link')) || [];
+    navLinks.forEach(function(link){
       link.addEventListener('click', function(){
         try{ if (collapseEl && collapseEl.classList.contains('show')) { $(collapseEl).collapse('hide'); } }
         catch(e){ /* fallback: remove 'show' class */ if (collapseEl) collapseEl.classList.remove('show'); }
@@ -915,12 +1139,65 @@
     });
 
     // update active link client-side when navigating anchors
-    document.querySelectorAll('#navbarNav .nav-link').forEach(function(link){
+    navLinks.forEach(function(link){
       link.addEventListener('click', function(){
         document.querySelectorAll('#navbarNav .nav-link').forEach(function(l){ l.classList.remove('active'); });
         this.classList.add('active');
       });
     });
+
+    // Animate mobile menu: add/remove .menu-open so CSS can stagger link reveals
+    if (collapseEl){
+      // create a backdrop element for mobile menu
+      var backdrop = document.createElement('div');
+      backdrop.className = 'nav-backdrop';
+      document.body.appendChild(backdrop);
+
+      // helper to find the toggler button
+      var toggler = document.querySelector('#mainNav .navbar-toggler');
+
+      // When bootstrap shows the collapse, add menu-open after a tiny tick so transitions run
+      collapseEl.addEventListener('show.bs.collapse', function(){
+        try{ backdrop.classList.add('show'); }catch(e){}
+        if (toggler) toggler.classList.add('is-open');
+        collapseEl.classList.remove('menu-open');
+        setTimeout(function(){ collapseEl.classList.add('menu-open'); }, 40);
+      });
+
+      // When hide is requested, run a pre-hide animation: remove menu-open and wait for staggered links to animate out
+      function runPreHideAndThen(fn){
+        if (!collapseEl.classList.contains('menu-open')){ if (typeof fn === 'function') return fn(); }
+        collapseEl.classList.remove('menu-open');
+        // compute max stagger delay we set in CSS (0.32s) + a small buffer
+        var delay = 360; // ms
+        setTimeout(function(){ if (typeof fn === 'function') fn(); }, delay);
+      }
+
+      // Intercept hide triggers to play pre-hide animation first
+      collapseEl.addEventListener('hide.bs.collapse', function(e){
+        // If hide was triggered programmatically via runPreHideAndThen, allow it.
+        // When Bootstrap triggers hide directly (e.g., by clicking toggler), we'll prevent default and animate first.
+        if (!collapseEl.dataset._allowHide){
+          e.preventDefault();
+          runPreHideAndThen(function(){
+            // mark allow then call collapse('hide') via jQuery if available, otherwise remove classes
+            collapseEl.dataset._allowHide = '1';
+            try{ $(collapseEl).collapse('hide'); }
+            catch(e){ collapseEl.classList.remove('show'); collapseEl.dataset._allowHide = ''; backdrop.classList.remove('show'); if (toggler) toggler.classList.remove('is-open'); }
+          });
+        } else {
+          // final hide happened: remove backdrop and toggler state
+          try{ delete collapseEl.dataset._allowHide; }catch(e){}
+          backdrop.classList.remove('show');
+          if (toggler) toggler.classList.remove('is-open');
+        }
+      });
+
+      // Also ensure backdrop click closes the menu with animation
+      backdrop.addEventListener('click', function(){
+        runPreHideAndThen(function(){ try{ $(collapseEl).collapse('hide'); }catch(e){ collapseEl.classList.remove('show'); backdrop.classList.remove('show'); if (toggler) toggler.classList.remove('is-open'); } });
+      });
+    }
   })();
 </script>
 {# Floating appointment CTA — visible only on /cases/ and /cases/<id>/ pages #}

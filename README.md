@@ -199,5 +199,71 @@ python manage.py runserver
 - `SESSION_COOKIE_SECURE` و `CSRF_COOKIE_SECURE` — تأمين الكوكيز فقط عبر HTTPS.
 - `X_FRAME_OPTIONS` — قيمة رأس X-Frame-Options (افتراضي DENY).
 
+
 لتفعيل هذه الإعدادات على الخادم الإنتاجي، تأكد من ضبط `DJANGO_DEBUG=0` وتهيئة المتغيرات أعلاه في `.env` أو في إعدادات البيئة على مزود الاستضافة.
+
+
+---
+
+## ⏱️ Celery (مهام معالجة الخلفية)
+
+هذا المشروع يحتوي على تطبيق Celery في `lawyer_site/celery.py`. يمكن لـ Celery اكتشاف المهام تلقائيًا من ملفات `tasks.py` في التطبيقات.
+
+إعدادات البيئات (أضف إلى `.env` أو متغيرات بيئة الخادم):
+
+- `CELERY_BROKER_URL` — مثال: `redis://localhost:6379/0`
+- `CELERY_RESULT_BACKEND` — مثال: `redis://localhost:6379/1` (اختياري)
+
+مثال:
+
+```
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/1
+```
+
+تشغيل عامل (worker) محليًا (PowerShell):
+
+```powershell
+# فعّل البيئة الافتراضية أولاً
+#.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+celery -A lawyer_site worker --loglevel=info
+```
+
+تشغيل عامل مع تزامن 4:
+
+```powershell
+celery -A lawyer_site worker --loglevel=info --concurrency=4
+```
+
+مراقبة المهام باستخدام Flower (اختياري):
+
+```powershell
+pip install flower
+celery -A lawyer_site flower --port=5555
+# افتح http://localhost:5555
+```
+
+الملاحظات:
+- على بيئة الإنتاج، استخدم خدمة رسائل مُدارة (مثل Redis سلحساب خارجي) وشغّل العمال في عملية منفصلة (systemd، Docker، إلخ).
+- تأكد من تثبيت `pywebpush` في بيئة العمال إذا أردت دعم إرسال إشعارات الويب من المهام.
+- المهام التي أنشأتها للتو: `core.tasks.send_pushes_for_post` تُستخدم لإرسال الإشعارات عند نشر مقال جديد.
+
+### تشغيل Redis + Celery + Flower باستخدام Docker Compose
+
+If you have Docker available you can start Redis, a Celery worker and Flower using the supplied compose file:
+
+```powershell
+docker-compose -f docker-compose.yml -f docker-compose.celery.yml up --build
+```
+
+This will expose:
+- Redis on localhost:6379
+- Flower on localhost:5555
+
+Stop the services with Ctrl+C or run:
+
+```powershell
+docker-compose -f docker-compose.yml -f docker-compose.celery.yml down
+```
 

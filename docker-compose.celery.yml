@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build: .
+    command: celery -A lawyer_site worker --loglevel=info --concurrency=1
+    env_file: .env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    restart: unless-stopped
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  flower:
+    image: mher/flower:latest
+    ports:
+      - "5555:5555"
+    command: flower --broker=redis://redis:6379/0 --address=0.0.0.0
+    env_file: .env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.celery.yml up --build

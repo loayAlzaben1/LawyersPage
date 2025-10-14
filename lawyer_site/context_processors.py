@@ -13,4 +13,6 @@ def site_settings(request):
         'SITE_NAME_AR': getattr(settings, 'SITE_NAME', 'المحامية إيمان النجار'),
         'SITE_NAME_EN': getattr(settings, 'SITE_NAME_EN', 'Eman Al-Najjar'),
         'SITE_DESCRIPTION': getattr(settings, 'SITE_DESCRIPTION', 'مكتب محاماة يقدم استشارات وتمثيل قانوني شخصي ومهني.'),
+        # expose VAPID public key for client registration (may be None in dev until set)
+        'VAPID_PUBLIC_KEY': getattr(settings, 'VAPID_PUBLIC_KEY', None),
     }
