@@ -114,11 +114,12 @@ PARLER_LANGUAGES = {
 }
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+# Ensure filesystem paths are plain strings (some hosting environments expect str paths)
+STATICFILES_DIRS = [str(BASE_DIR / 'static')]
 # Directory where `collectstatic` will collect static files for production
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = str(BASE_DIR / 'staticfiles')
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = str(BASE_DIR / 'media')
 
 # Site-wide settings
 SITE_NAME = os.getenv('SITE_NAME', 'المحامية إيمان النجار')
