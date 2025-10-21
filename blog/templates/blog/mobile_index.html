@@ -94,7 +94,7 @@
             <div class="excerpt text-muted">{{ post.content|striptags|truncatewords:28 }}</div>
             <div style="margin-top:10px;display:flex;gap:8px">
               <a class="btn btn-sm btn-primary" href="{{ post.get_absolute_url }}">اقرأ المزيد</a>
-              <a class="btn btn-sm btn-outline-secondary" href="#">تعليق</a>
+              <a class="btn btn-sm btn-outline-secondary" href="{{ post.get_absolute_url }}">تعليق</a>
             </div>
           </div>
         </article>

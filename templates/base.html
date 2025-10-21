@@ -800,6 +800,29 @@
   </style>
 </head>
 <body>
+  <script>
+    // Defensive capture-phase click handler:
+    // Allow anchors with a real href (not '#', 'None', or javascript:) to proceed by
+    // stopping propagation early so later delegated handlers can't call preventDefault().
+    // This is a minimal, safe guard to avoid swallowing normal navigation links like the
+    // blog comment link. It only runs on click capture and does not prevent the default action.
+    (function(){
+      try{
+        document.addEventListener('click', function(e){
+          try{
+            var el = e.target && e.target.closest && e.target.closest('a');
+            if (!el) return;
+            var href = (el.getAttribute && el.getAttribute('href')) || '';
+            if (!href) return; // no href -> let other handlers (or nothing) handle it
+            // ignore anchors that are explicitly placeholders or fragments
+            if (href === '#' || href === '' || href === 'None' || href.indexOf('javascript:') === 0) return;
+            // it's a real navigation target; prevent other handlers from intercepting
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation(); else e.stopPropagation();
+          }catch(_){ /* ignore per-site errors */ }
+        }, true); // use capture so this runs before bubble handlers
+      }catch(_){ }
+    })();
+  </script>
   <style>
     /* Global hero fixed background override: ensure full-bleed cover and smooth transitions */
     #heroAnimatedBg{ background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; background-color: var(--hero-bg, #0b1b2b) !important; will-change: transform, opacity !important; transition: transform .42s cubic-bezier(.2,.9,.2,1), opacity .42s cubic-bezier(.2,.9,.2,1) !important; }
@@ -895,6 +918,18 @@
   </style>
 
 <main class="container mt-4">
+    {# render one-time user messages (success/info/errors) #}
+    {% if messages %}
+      <div class="container" style="max-width:900px;margin-top:8px">
+        {% for message in messages %}
+          <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     {% block content %}{% endblock %}
 </main>
 

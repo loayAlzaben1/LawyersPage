@@ -52,8 +52,17 @@ class BlogPost(TranslatableModel):
         return getattr(self, 'slug', '') or f'Post {self.pk or ""}'
 
     def get_absolute_url(self):
-        # Blog app removed: no detail route available. Return None to avoid reverse errors.
-        return None
+        # Return the URL for the blog detail view. Use reverse so URLs follow
+        # the project's routing and can be changed centrally.
+        from django.urls import reverse
+
+        try:
+            if getattr(self, 'slug', None):
+                return reverse('blog:detail', kwargs={'slug': self.slug})
+        except Exception:
+            # If reversing fails for any reason, fall back to a safe root URL
+            pass
+        return '/'
 
     def save(self, *args, **kwargs):
         # First save to ensure og_image file is available in storage

@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.http import JsonResponse, Http404
 import os
 from django.shortcuts import get_object_or_404
+from django.contrib import messages
 
 
 PAGE_SIZE = 6
@@ -63,8 +64,19 @@ def detail(request, slug):
         if form.is_valid():
             comment = form.save(commit=False)
             comment.post = post
-            comment.approved = False
+            # Auto-approve comments submitted by staff users (site owner/admin).
+            # Other comments remain pending for moderation.
+            if request.user.is_authenticated and request.user.is_staff:
+                comment.approved = True
+            else:
+                comment.approved = False
             comment.save()
+            # Give the user feedback about the submission
+            if comment.approved:
+                messages.success(request, 'تم نشر تعليقك.')
+            else:
+                messages.info(request, 'تم إرسال تعليقك وسيظهر بعد الموافقة.')
+
             # Redirect to avoid resubmission
             return redirect(post.get_absolute_url())
     else:
