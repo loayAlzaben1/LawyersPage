@@ -1,25 +1,115 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}الرئيسية - موقع {{ SITE_NAME }}{% endblock %}
 {% block extra_meta %}
     {% if hero_image_url %}
         <link rel="preload" as="image" href="{{ hero_image_url }}">
+    {% elif hero_static_fallback %}
+        <link rel="preload" as="image" href="{{ hero_static_fallback }}">
     {% endif %}
 {% endblock %}
 {% block content %}
-<div class="hero text-center mb-4">
-        {% if hero_image_url %}
-            <style>
-                .hero { background-image: linear-gradient(rgba(0,0,0,0.28), rgba(0,0,0,0.18)), url('{{ hero_image_url }}'); background-size: cover; background-position: center; color: #fff; }
-                .hero .primary-btn { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.12); }
-            </style>
-        {% endif %}
-        <h1>خدمات قانونية متخصصة بثقة ومهنية</h1>
-        <p>محامية أردنية بخبرة في تقديم استشارات وتمثيل قانوني شامل.</p>
-        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-                <a class="btn primary-btn" href="/appointment/">احجز موعداً الآن</a>
-                <a class="btn" href="/contact/" style="background:transparent;border:1px solid rgba(11,45,77,0.06);">اتصل بنا</a>
+
+<div class="hero text-center mb-4 hero--loading" role="region" aria-label="Hero">
+    {% if hero_image_url or hero_static_fallback %}
+        <style>
+            /* Make hero occupy full viewport so background appears full-screen */
+            /* Allow overflow so the fixed background isn't clipped by the hero container */
+            .hero{ position:relative; overflow:visible; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:40px 12px; color:#fff }
+            /* hero-bg is an overlay used for the gradient; the animated background lives in a fixed root element */
+            .hero .hero-bg{ position:absolute; inset:0; z-index:0; background:linear-gradient(rgba(0,0,0,0.16), rgba(0,0,0,0.12)); pointer-events:none }
+            /* The fixed image is sized via vw/vh so it fills the viewport exactly */
+            #heroAnimatedBg img{ width:100vw; height:100vh; object-fit:cover; display:block; opacity:0; transform:scale(1.02); transition:opacity .6s ease, transform .6s ease; }
+            .hero.hero--loaded #heroAnimatedBg img{ opacity:1; transform:none }
+            /* Ensure hero content stacks above the animated background */
+            .hero .hero-inner{ position:relative; z-index:2; max-width:960px }
+            /* Note: primary button color/background is controlled globally in base.html to keep site-wide consistency. */
+        </style>
+
+        {# Animated background: placed outside the hero container (fixed-root) so it truly covers the viewport. #}
+        <div id="heroAnimatedBg" style="position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;overflow:hidden;display:block">
+            {% if hero_image_url %}
+                <img id="heroAnimImg" src="{{ hero_image_url }}" alt="" loading="eager" fetchpriority="high" decoding="async" style="transform-origin:center center;will-change:transform,opacity;transition:transform 0.45s ease-out,opacity 0.45s ease-out;filter:brightness(0.9) saturate(0.95);">
+            {% else %}
+                <img id="heroAnimImg" src="{{ hero_static_fallback }}" alt="" loading="eager" fetchpriority="high" decoding="async" style="transform-origin:center center;will-change:transform,opacity;transition:transform 0.45s ease-out,opacity 0.45s ease-out;filter:brightness(0.9) saturate(0.95);">
+            {% endif %}
+            <div style="position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.12));pointer-events:none"></div>
         </div>
+
+        {# Keep a hero-bg element for the gradient overlay within the hero (no image inside). #}
+        <div class="hero-bg" aria-hidden="true"></div>
+    {% endif %}
+    <div class="hero-inner">
+        <h1>استشارة قانونية موثوقة وسريعة</h1>
+        <p style="color: #fff;  ">خبرة محلية وتمثيل واضح — دعنا نساعدك بخطوة واحدة.</p>
+        <div class="d-flex justify-content-center flex-wrap" style="gap:10px">
+            <a class="btn primary-btn" href="/appointment/" role="button" aria-label="احجز موعداً الآن">احجز استشارة</a>
+            <a class="btn btn-outline ripple" href="/contact/" role="button" aria-label="Contact Us" style="color: white;">تواصل معنا </a>
+        </div>
+    </div>
 </div>
+
+<script>
+// Soft entry: when the hero image finishes loading, add .hero--loaded
+document.addEventListener('DOMContentLoaded', function(){
+    try {
+        var hero = document.querySelector('.hero');
+        if (!hero) return;
+        var img = hero.querySelector('.hero-bg img');
+        if (!img) { hero.classList.add('hero--loaded'); return; }
+        if (img.complete && img.naturalWidth) { hero.classList.add('hero--loaded'); return; }
+        img.addEventListener('load', function(){ hero.classList.add('hero--loaded'); });
+        // safety timeout
+        setTimeout(function(){ hero.classList.add('hero--loaded'); }, 1200);
+    } catch (e) { /* ignore */ }
+});
+</script>
+
+<script>
+// Animated hero: fade out and slightly scale the background image as the user scrolls down.
+// Keeps the hero content in place while the background moves for a subtle parallax/fade effect.
+(function(){
+    var animBg = document.getElementById('heroAnimatedBg');
+    var img = document.getElementById('heroAnimImg');
+    if (!animBg || !img) return;
+
+    // The hero container's height (we'll map scroll from 0..heroHeight to 0..1)
+    var hero = document.querySelector('.hero');
+    function update(){
+        try {
+            var rect = hero.getBoundingClientRect();
+            var viewportH = window.innerHeight || document.documentElement.clientHeight;
+            // distance from top of viewport to bottom of hero
+            var visible = Math.max(0, Math.min(rect.bottom, viewportH));
+            var ratio = 0;
+            if (rect.top < viewportH) {
+                // map rect.top (0..heroHeight) to 0..1 where 0 = at top, 1 = scrolled past hero
+                var heroHeight = Math.max(1, rect.height);
+                var scrolled = Math.max(0, -rect.top);
+                ratio = Math.min(1, scrolled / heroHeight);
+            }
+
+            // Compute transforms: scale down a bit and reduce opacity with scroll
+            var scale = 1 + (0.03 * Math.max(0, 1 - ratio)); // subtle initial scale
+            var opacity = Math.max(0.25, 1 - ratio * 1.15); // fade to ~0.25 at full scroll
+
+            img.style.transform = 'scale(' + scale.toFixed(3) + ') translate3d(0,0,0)';
+            img.style.opacity = opacity.toFixed(3);
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    // Throttle using requestAnimationFrame
+    var ticking = false;
+    function onScroll(){ if (!ticking) { ticking = true; requestAnimationFrame(function(){ update(); ticking = false; }); } }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    // initial update
+    update();
+})();
+</script>
 
 {# Include lawyer cards if available #}
 {% if lawyers and lawyers|length > 0 %}
@@ -29,8 +119,46 @@
     </section>
 {% endif %}
 
+{# Featured blog articles - show up to 3 latest published posts from the blog app #}
+{# latest_posts is provided by core.views when the blog app is available #}
+{% if latest_posts and latest_posts|length > 0 %}
+    {% with latest_posts=latest_posts %}
+    {% if latest_posts %}
+        <section class="featured-articles mb-4">
+            <h2 style="font-size:1.4rem;margin-bottom:12px">مقالات مختارة</h2>
+            <div class="row g-3">
+            {% for p in latest_posts|slice:":3" %}
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <a href="{{ p.get_absolute_url }}" style="text-decoration:none;color:inherit">
+                            <article class="post-card card" style="height:100%">
+                                {% if p.processed_og_image_small or p.featured_image %}
+                                    <div style="height:160px;overflow:hidden;border-top-left-radius:6px;border-top-right-radius:6px">
+                                        <img src="{% if p.processed_og_image_small %}{{ p.processed_og_image_small.url }}{% else %}{{ p.featured_image.url }}{% endif %}" alt="{{ p.title }}" loading="lazy" style="width:100%;height:160px;object-fit:cover;display:block;">
+                                    </div>
+                                {% endif %}
+                                <div class="card-body" style="padding:12px">
+                                    <h5 class="card-title" style="margin:0 0 8px 0;font-size:1.05rem">{{ p.title }}</h5>
+                                    <p class="card-text text-muted" style="margin:0">{{ p.content|striptags|truncatechars:120 }}</p>
+                                </div>
+                            </article>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+            <div style="margin-top:12px;display:flex;justify-content:center">
+                <a href="/blog/" class="btn btn-outline-primary">المزيد من المقالات</a>
+            </div>
+        </section>
+        {% endif %}
+    {% endwith %}
+{% endif %}
+
 <section class="services-section mb-4">
     <h3 style="margin-bottom:12px">خدماتنا</h3>
+    <div style="margin-bottom:12px;max-width:720px">
+        <label for="serviceSearch" class="visually-hidden">ابحث في الخدمات</label>
+        <input id="serviceSearch" type="search" placeholder="ابحث في الخدمات..." aria-label="ابحث في الخدمات" class="form-control" style="max-width:420px">
+    </div>
     <div class="row gy-3">
         {% for s in services %}
         <div class="col-12 col-md-6 col-lg-4">
@@ -62,7 +190,7 @@
                 <p style="margin:0;color:var(--muted-text)">{{ s.description|default:'وصف الخدمة' }}</p>
             </div>
                     <div style="margin-top:12px;display:flex;justify-content:flex-end">
-                        <a class="btn" href="/appointment/?service={{ s.slug }}" style="padding:8px 12px;border-radius:6px;background:var(--brand);color:var(--on-brand);text-decoration:none">اختر الخدمة</a>
+                        <a class="btn primary-btn btn-sm" href="/appointment/?service={{ s.slug }}">اختر الخدمة</a>
                     </div>
                 </div>
             </div>
@@ -72,6 +200,28 @@
         {% endfor %}
     </div>
 </section>
+
+<script>
+// Service search/filter (debounced)
+document.addEventListener('DOMContentLoaded', function(){
+    var input = document.getElementById('serviceSearch');
+    if (!input) return;
+    var timeout = null;
+    input.addEventListener('input', function(){
+        clearTimeout(timeout);
+        timeout = setTimeout(function(){
+            var q = (input.value || '').trim().toLowerCase();
+            var cards = document.querySelectorAll('.service-card');
+            cards.forEach(function(card){
+                var title = (card.querySelector('h4') && card.querySelector('h4').textContent || '').toLowerCase();
+                var desc = (card.querySelector('p') && card.querySelector('p').textContent || '').toLowerCase();
+                var visible = !q || title.indexOf(q) !== -1 || desc.indexOf(q) !== -1;
+                card.closest('.col-12').style.display = visible ? '' : 'none';
+            });
+        }, 180);
+    });
+});
+</script>
 
 {# JSON data for client-side interactions #}
 <script id="home_reviews" type="application/json">{{ reviews_json|safe }}</script>
@@ -186,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function(){
             <a href="{% url 'core:case_detail' c.pk %}" style="text-decoration:none;color:inherit">
             <div class="card" style="height:100%">
                 {% if c.image %}
-                <img src="{{ c.image.url }}" alt="{{ c.title }}" loading="lazy" fetchpriority="low" style="object-fit:cover;height:160px;width:100%;border-top-left-radius:6px;border-top-right-radius:6px;">
+                <img src="{{ c.image.url }}" alt="{{ c.title }}" loading="lazy" decoding="async" fetchpriority="low" {% if c.image.width %}width="{{ c.image.width }}"{% endif %} {% if c.image.height %}height="{{ c.image.height }}"{% endif %} style="object-fit:cover;height:160px;width:100%;border-top-left-radius:6px;border-top-right-radius:6px;">
                 {% endif %}
                 <div class="card-body">
                     <h5 class="card-title">{{ c.title }}</h5>

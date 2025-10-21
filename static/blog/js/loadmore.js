@@ -26,8 +26,27 @@ document.addEventListener('DOMContentLoaded', function(){
               // append and keep a reference to the appended node for init
               var node = temp.firstChild;
               container.appendChild(node);
+
+              // defensive: ensure any images inside the appended node have the expected class
+              try{
+                var imgs = node.querySelectorAll && node.querySelectorAll('img');
+                if (imgs && imgs.length){
+                  imgs.forEach(function(img){
+                    if (!img.classList.contains('card-image')) img.classList.add('card-image');
+                    // ensure sensible inline fallback so CSS has immediate min constraints
+                    img.style.maxWidth = img.style.maxWidth || '100%';
+                    img.style.objectFit = img.style.objectFit || 'cover';
+                    // force browser to layout this node now
+                    void img.offsetWidth;
+                  });
+                }
+              }catch(_e){}
+
               // If blogReadmore is available, initialize the new node
               try{ if (window.blogReadmore && typeof window.blogReadmore.init === 'function'){ window.blogReadmore.init(node); } }catch(_e){}
+
+              // trigger a resize event as a final reflow hint (some browsers recalc on resize)
+              try{ window.dispatchEvent(new Event('resize')); }catch(_e){}
             }
           }
           if (data.has_next){

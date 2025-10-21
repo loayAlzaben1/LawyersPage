@@ -11,6 +11,8 @@ urlpatterns = [
     # serve service worker at site root so it has scope over the whole site
     path('service-worker.js', lambda request: FileResponse(open(finders.find('service-worker.js'), 'rb'), content_type='application/javascript')),
     path('', include('core.urls')),
+    # Mount blog app at /blog/
+    path('blog/', include('blog.urls')),
 ]
 
 if settings.DEBUG:

@@ -13,10 +13,10 @@
     <h1 style="font-size:2rem">{{ post.title }}</h1>
     <div class="meta small text-muted">{{ post.published_at|date:'j M Y' }}</div>
     <div class="post-media mt-3">
-      {% if post.processed_og_image_large %}
-        <img src="{{ post.processed_og_image_large.url }}" alt="{{ post.title }}" style="width:100%;height:auto;border-radius:8px;object-fit:cover">
+        {% if post.processed_og_image_large %}
+        <img src="{{ post.processed_og_image_large.url }}" alt="{{ post.title }}" class="card-image">
       {% elif post.featured_image %}
-        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" style="width:100%;height:auto;border-radius:8px;object-fit:cover">
+        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="card-image">
       {% endif %}
     </div>
 

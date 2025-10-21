@@ -1,86 +1,44 @@
 <!DOCTYPE html>
-{% load static %}
+
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}موقع {{ SITE_NAME }}{% endblock %}</title>
-  <meta name="description" content="{{ SITE_DESCRIPTION }}">
+  <title>المقالات - المحامية إيمان النجار</title>
+  <meta name="description" content="مكتب محاماة يقدم استشارات وتمثيل قانوني شخصي ومهني.">
   <!-- Favicons -->
   <!-- SVG fallback (keeps existing behavior) -->
-  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
-  <link rel="shortcut icon" href="{% static 'img/favicon.svg' %}">
+  <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
+  <link rel="shortcut icon" href="/static/img/favicon.svg">
   <!-- PNG favicons for broader support -->
-  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/img/favicon-16x16.png">
   <!-- Safari pinned tab -->
-  <link rel="mask-icon" href="{% static 'img/safari-pinned-tab.svg' %}" color="#0d6efd">
+  <link rel="mask-icon" href="/static/img/safari-pinned-tab.svg" color="#0d6efd">
   <!-- Web App manifest for add-to-home-screen behavior -->
-  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <link rel="manifest" href="/static/manifest.json">
   <meta name="theme-color" content="#0d6efd">
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  {% if post %}
-    {% if post.title %}
-      <meta property="og:title" content="{{ post.title }}">
-    {% else %}
-      <meta property="og:title" content="{{ SITE_NAME }}">
-    {% endif %}
-  {% with content=post.content %}
-      {% if content %}
-        <meta property="og:description" content="{{ content|striptags|truncatechars:160 }}">
-      {% else %}
-        <meta property="og:description" content="{{ SITE_DESCRIPTION }}">
-      {% endif %}
-    {% endwith %}
-    {% if post.processed_og_image_large %}
-      <meta property="og:image" content="{{ post.processed_og_image_large.url }}">
-    {% elif post.og_image %}
-      <meta property="og:image" content="{{ post.og_image.url }}">
-    {% else %}
-      <meta property="og:image" content="{% static 'img/og-image.png' %}">
-    {% endif %}
-    <meta property="og:url" content="{{ request.build_absolute_uri }}">
-  {% else %}
-    <meta property="og:title" content="{{ SITE_NAME }}">
-    <meta property="og:description" content="{{ SITE_DESCRIPTION }}">
-    <meta property="og:image" content="{% static 'img/og-image.png' %}">
-    <meta property="og:url" content="{{ request.build_absolute_uri }}">
-  {% endif %}
+  
+    <meta property="og:title" content="المحامية إيمان النجار">
+    <meta property="og:description" content="مكتب محاماة يقدم استشارات وتمثيل قانوني شخصي ومهني.">
+    <meta property="og:image" content="/static/img/og-image.png">
+    <meta property="og:url" content="http://127.0.0.1:8000/blog/">
+  
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  {% if post %}
-    {% if post.title %}
-      <meta name="twitter:title" content="{{ post.title }}">
-    {% else %}
-      <meta name="twitter:title" content="{{ SITE_NAME }}">
-    {% endif %}
-  {% with content=post.content %}
-      {% if content %}
-        <meta name="twitter:description" content="{{ content|striptags|truncatechars:160 }}">
-      {% else %}
-        <meta name="twitter:description" content="{{ SITE_DESCRIPTION }}">
-      {% endif %}
-    {% endwith %}
-    {% if post.processed_og_image_large %}
-      <meta name="twitter:image" content="{{ post.processed_og_image_large.url }}">
-    {% elif post.og_image %}
-      <meta name="twitter:image" content="{{ post.og_image.url }}">
-    {% else %}
-      <meta name="twitter:image" content="{% static 'img/og-image.png' %}">
-    {% endif %}
-    <meta name="twitter:url" content="{{ request.build_absolute_uri }}">
-  {% else %}
-    <meta name="twitter:title" content="{{ SITE_NAME }}">
-    <meta name="twitter:description" content="{{ SITE_DESCRIPTION }}">
-    <meta name="twitter:image" content="{% static 'img/og-image.png' %}">
-    <meta name="twitter:url" content="{{ request.build_absolute_uri }}">
-  {% endif %}
-  <link rel="canonical" href="{{ request.build_absolute_uri }}">
-  <link rel="alternate" href="{{ request.build_absolute_uri }}" hreflang="ar">
-  <link rel="alternate" href="{{ request.build_absolute_uri }}" hreflang="x-default">
-  {% block extra_meta %}{% endblock %}
+  
+    <meta name="twitter:title" content="المحامية إيمان النجار">
+    <meta name="twitter:description" content="مكتب محاماة يقدم استشارات وتمثيل قانوني شخصي ومهني.">
+    <meta name="twitter:image" content="/static/img/og-image.png">
+    <meta name="twitter:url" content="http://127.0.0.1:8000/blog/">
+  
+  <link rel="canonical" href="http://127.0.0.1:8000/blog/">
+  <link rel="alternate" href="http://127.0.0.1:8000/blog/" hreflang="ar">
+  <link rel="alternate" href="http://127.0.0.1:8000/blog/" hreflang="x-default">
+  
   <!-- Google Font Tajawal -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <!-- Bootstrap 5 RTL CDN -->
@@ -88,19 +46,17 @@
   <!-- Bootstrap Icons (centralized icon library) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <!-- local site css -->
-  <link href="{% static 'css/site.css' %}" rel="stylesheet">
-  <script src="{% static 'js/webpush.js' %}" defer></script>
+  <link href="/static/css/site.css" rel="stylesheet">
+  <script src="/static/js/webpush.js" defer></script>
   <script>
     // expose VAPID public key to client JS without extra fetch
-    {% if VAPID_PUBLIC_KEY %}
-    window.SITE_VAPID_PUBLIC_KEY = "{{ VAPID_PUBLIC_KEY|escapejs }}";
-    {% else %}
-    window.SITE_VAPID_PUBLIC_KEY = null;
-    {% endif %}
+    
+    window.SITE_VAPID_PUBLIC_KEY = "BJpipnfuQ7cBWCx\u002DmSFfN7iAZALyiB6CdgCue6otunvSNnUyw8_g8G2Xzlz6oNH6ZRHR23lRMaJIPpCB8zrcBJw";
+    
   </script>
   <script>
     // Expose whether the current request is authenticated so client can re-link subscriptions after login
-    window.SITE_USER_AUTHENTICATED = {% if request.user.is_authenticated %}true{% else %}false{% endif %};
+    window.SITE_USER_AUTHENTICATED = false;
   </script>
   <style>
     /* Toast container placement and responsive sizing */
@@ -159,7 +115,7 @@
           }
 
           function fetchDropdown(){
-            fetch('{% url "core:notifications_list" %}', { credentials: 'same-origin' })
+            fetch('/notifications/list/', { credentials: 'same-origin' })
             .then(function(r){ if (!r.ok) throw new Error('network'); return r.json(); })
             .then(function(json){
               renderDropdownItems(json.notifications || []);
@@ -179,7 +135,7 @@
           if (markAllBtn){
             markAllBtn.addEventListener('click', function(e){ e.preventDefault();
               var csrftoken = getCookie('csrftoken');
-              fetch('{% url "core:notifications_mark_all_read" %}', { method:'POST', credentials:'same-origin', headers: { 'X-CSRFToken': csrftoken } })
+              fetch('/notifications/mark_all_read/', { method:'POST', credentials:'same-origin', headers: { 'X-CSRFToken': csrftoken } })
               .then(function(r){ if (!r.ok) throw new Error('network'); return r.json(); })
               .then(function(json){
                 // refresh dropdown and badge
@@ -213,7 +169,7 @@
       var seen = new Set();
 
       function fetchNotifications(){
-        fetch('{% url "core:get_notifications" %}', { credentials: 'same-origin' })
+        fetch('/notifications/get/', { credentials: 'same-origin' })
         .then(function(r){ if (!r.ok) throw new Error('network'); return r.json(); })
         .then(function(data){
           if (!data || !Array.isArray(data.notifications)) return;
@@ -255,7 +211,7 @@
       function markRead(ids){
         if (!ids || !ids.length) return;
         var csrftoken = getCookie('csrftoken');
-        fetch('{% url "core:mark_notifications_read" %}', {
+        fetch('/notifications/mark_read/', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
@@ -772,38 +728,8 @@
     /* Accessibility: focus-visible outlines for keyboard users */
     :focus-visible{ outline:3px solid rgba(13,110,253,0.12); outline-offset:2px }
   </style>
-  <style>
-    /* Emergency clamp for large blog/hero/card images to prevent layout break.
-       This is intentionally minimal and high-specificity so it takes effect immediately.
-       We'll keep it conservative and non-destructive. */
-    .blog-hero img,
-    .hero img,
-    img.card-image,
-    .post-card img,
-    .card-media img,
-    .lawyer-media img,
-    .post-content img {
-      max-width: 100% !important;
-      height: auto !important;
-      max-height: min(45vh, 420px) !important;
-      object-fit: cover !important;
-      display: block !important;
-    }
-
-    /* For media containers that previously held oversized images */
-    .blog-hero .media,
-    .card-media,
-    .lawyer-media {
-      max-height: min(45vh, 420px) !important;
-      overflow: hidden !important;
-    }
-  </style>
 </head>
 <body>
-  <style>
-    /* Global hero fixed background override: ensure full-bleed cover and smooth transitions */
-    #heroAnimatedBg{ background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; background-color: var(--hero-bg, #0b1b2b) !important; will-change: transform, opacity !important; transition: transform .42s cubic-bezier(.2,.9,.2,1), opacity .42s cubic-bezier(.2,.9,.2,1) !important; }
-  </style>
   <!-- Sticky interactive navbar -->
   <nav id="mainNav" class="navbar navbar-expand-lg navbar-light" role="navigation" aria-label="القائمة الرئيسية">
     <div class="container-fluid">
@@ -812,15 +738,15 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        {# All nav items + CTA in one row so buttons sit next to each other #}
+        
   <ul class="navbar-nav mr-auto d-flex align-items-center" style="gap:12px">
-          <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">الرئيسية</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.path|slice:":10" == '/services' %}active{% endif %}" href="/services/">الخدمات</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.path|slice:":7" == '/cases/' or request.path|slice:":6" == '/cases' %}active{% endif %}" href="/cases/">قضايا</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.path|slice:":6" == '/blog/' or request.path == '/blog' %}active{% endif %}" href="/blog/">المقالات</a></li>
+          <li class="nav-item"><a class="nav-link " href="/">الرئيسية</a></li>
+          <li class="nav-item"><a class="nav-link " href="/services/">الخدمات</a></li>
+          <li class="nav-item"><a class="nav-link " href="/cases/">قضايا</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/blog/">المقالات</a></li>
           
-          <li class="nav-item"><a class="nav-link {% if request.path|slice:":5" == '/faq/' %}active{% endif %}" href="/faq/">الأسئلة الشائعة</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.path|slice:":8" == '/contact' %}active{% endif %}" href="/contact/">تواصل</a></li>
+          <li class="nav-item"><a class="nav-link " href="/faq/">الأسئلة الشائعة</a></li>
+          <li class="nav-item"><a class="nav-link " href="/contact/">تواصل</a></li>
           <li class="nav-item">
             <button id="themeToggle" class="nav-link btn btn-sm" aria-pressed="false" aria-label="تبديل الوضع الداكن" title="تبديل الوضع الداكن">
               <i id="themeIcon" class="bi bi-moon-fill" aria-hidden="true"></i>
@@ -876,7 +802,7 @@
       .navbar-toggler.is-open{ transform: rotate(0deg); }
       .navbar-toggler.is-open .navbar-toggler-icon{ background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 4L20 20M20 4L4 20'/%3E%3C/svg%3E"); transform: rotate(0deg); }
 
-      /* backdrop that fades in behind the open menu on mobile */
+  /* backdrop that fades in behind the open menu on mobile */
   #nav-backdrop{ position:fixed; inset:0; background:rgba(11,20,34,0.28); opacity:0; transition:opacity .28s ease; z-index:50; pointer-events:none }
   #nav-backdrop.show{ opacity:1; pointer-events:auto }
     }
@@ -895,21 +821,75 @@
   </style>
 
 <main class="container mt-4">
-    {% block content %}{% endblock %}
+    
+<div class="blog-main">
+ 
+      
+    
+  </div>
+
+  <div class="top-bar">
+    <div class="search">
+      <input id="postsSearch" class="form-control" placeholder="ابحث في العناوين..." aria-label="بحث" />
+    </div>
+    <div class="actions">
+      <button id="clearPostsSearch" class="btn btn-outline-secondary">مسح</button>
+    </div>
+  </div>
+
+  <div class="post-list" id="cards-container">
+    
+      <article class="post-card card">
+        <div class="card-media">
+          
+            <!-- image removed: /media/blog_images/1758045994569.jpg -->
+          
+        </div>
+        <div class="card-body-custom">
+          <h2 class="card-title" style="margin:0 0 6px 0;font-size:1.05rem">qqqqqqqqqqqqqqqqq</h2>
+          <div class="excerpt text-muted">qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq qqqqqqqqqqqqq qqqqqqqqqqqqq qqqqqqqqqqqqq qqqqqqqqqqqqqqq</div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <a class="btn btn-sm btn-primary" href="None">اقرأ المزيد</a>
+            <a class="btn btn-sm btn-outline-secondary" href="#">تعليق</a>
+          </div>
+        </div>
+      </article>
+    
+      <article class="post-card card">
+        <div class="card-media">
+          
+            <!-- removed large image: قانون الأحوال الشخصية - 2020_Yt2HAkA.webp -->
+          
+        </div>
+        <div class="card-body-custom">
+          <h2 class="card-title" style="margin:0 0 6px 0;font-size:1.05rem">قانون الأحوال الشخصية (الزواج والطلاق والحضانة)</h2>
+          <div class="excerpt text-muted">التركيز على هذا القانون هو أساس عمل المحامي الشرعي. ابحث عن مقالات تتناول ما يلي: أحدث التعديلات على قانون الأحوال الشخصية الأردني: يجب أن تكون على اطلاع دائم …</div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <a class="btn btn-sm btn-primary" href="None">اقرأ المزيد</a>
+            <a class="btn btn-sm btn-outline-secondary" href="#">تعليق</a>
+          </div>
+        </div>
+      </article>
+    
+  </div>
+
+  
+</div>
+
 </main>
 
 <footer class="footer text-center mt-5 mb-3">
   <div class="container">
-    <p class="mb-1">© {{ now.year }} المحامية إيمان النجار — جميع الحقوق محفوظة</p>
+    <p class="mb-1">©  المحامية إيمان النجار — جميع الحقوق محفوظة</p>
     <p class="small">عمان، الأردن • ت: 0786481539 • بريد: info@example.com</p>
   </div>
 </footer>
 
 
-<script src="{% static 'vendor/bootstrap-loader.js' %}"></script>
-<script src="{% static 'js/file-input.js' %}"></script>
+<script src="/static/vendor/bootstrap-loader.js"></script>
+<script src="/static/js/file-input.js"></script>
 <!-- Load local Fuse (recommended) - replace static/js/fuse.min.js with the official fuse.min.js for best fuzzy matching -->
-<script src="{% static 'js/fuse.min.js' %}"></script>
+<script src="/static/js/fuse.min.js"></script>
 
 <style>
   /* clearer keyboard focus for interactive cards used by search keyboard navigation */
@@ -919,7 +899,7 @@
 <script>
   // expose toggle_like URL for JS (server-side rendered)
   window.urls = window.urls || {};
-  window.urls.toggle_like = "{% url 'core:toggle_like' %}";
+  window.urls.toggle_like = "/cases/toggle-like/";
 
   // Like button interaction: toggle visual state, aria attribute, and POST to server.
   (function(){
@@ -1214,25 +1194,17 @@
 
     // Animate mobile menu: add/remove .menu-open so CSS can stagger link reveals
     if (collapseEl){
-      // create a backdrop element for mobile menu unless we're on the blog index/list pages
-      // (some pages render a different layout and don't need the backdrop). This prevents
-      // adding id="nav-backdrop" on pages like /blog/ when not desired.
-      var backdrop = null;
-      try{
-        if (!(window && window.location && String(window.location.pathname || '').startsWith('/blog'))){
-          backdrop = document.createElement('div');
-          // use an id instead of a class to avoid adding the legacy `nav-backdrop` class
-          backdrop.id = 'nav-backdrop';
-          document.body.appendChild(backdrop);
-        }
-      }catch(e){ backdrop = null; }
+  // create a backdrop element for mobile menu
+  var backdrop = document.createElement('div');
+  backdrop.id = 'nav-backdrop';
+  document.body.appendChild(backdrop);
 
       // helper to find the toggler button
       var toggler = document.querySelector('#mainNav .navbar-toggler');
 
       // When bootstrap shows the collapse, add menu-open after a tiny tick so transitions run
       collapseEl.addEventListener('show.bs.collapse', function(){
-        try{ if (backdrop) backdrop.classList.add('show'); }catch(e){}
+        try{ backdrop.classList.add('show'); }catch(e){}
         if (toggler) toggler.classList.add('is-open');
         collapseEl.classList.remove('menu-open');
         setTimeout(function(){ collapseEl.classList.add('menu-open'); }, 40);
@@ -1262,36 +1234,20 @@
         } else {
           // final hide happened: remove backdrop and toggler state
           try{ delete collapseEl.dataset._allowHide; }catch(e){}
-      if (backdrop) backdrop.classList.remove('show');
-      if (toggler) toggler.classList.remove('is-open');
+          backdrop.classList.remove('show');
+          if (toggler) toggler.classList.remove('is-open');
         }
       });
 
-      // Also ensure backdrop click closes the menu with animation (only if backdrop exists)
-      if (backdrop){
-        backdrop.addEventListener('click', function(){
-          runPreHideAndThen(function(){ try{ $(collapseEl).collapse('hide'); }catch(e){ collapseEl.classList.remove('show'); if (backdrop) backdrop.classList.remove('show'); if (toggler) toggler.classList.remove('is-open'); } });
-        });
-      }
+      // Also ensure backdrop click closes the menu with animation
+      backdrop.addEventListener('click', function(){
+        runPreHideAndThen(function(){ try{ $(collapseEl).collapse('hide'); }catch(e){ collapseEl.classList.remove('show'); backdrop.classList.remove('show'); if (toggler) toggler.classList.remove('is-open'); } });
+      });
     }
   })();
 </script>
-{# Floating appointment CTA — visible only on /cases/ and /cases/<id>/ pages #}
-{% if request.path|slice:":6" == '/cases' or request.path|slice:":7" == '/cases/' %}
-  <div class="floating-appointment" aria-hidden="false">
-    <a href="/appointment/" title="حجز موعد">
-      <i class="bi bi-calendar2-check"></i>
-      <span>حجز موعد</span>
-    </a>
-  </div>
-  <script>
-    // Ensure floating CTA is visible (display property set in CSS)
-    document.addEventListener('DOMContentLoaded', function(){
-      var fa = document.querySelector('.floating-appointment');
-      if (fa) fa.style.display = 'block';
-    });
-  </script>
-{% endif %}
-{% block extra_js %}{% endblock %}
+
+
+
 </body>
 </html>

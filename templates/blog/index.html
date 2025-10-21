@@ -32,26 +32,7 @@
 {% endblock %}
 <div class="container">
     <div class="row g-4">
-                    {% comment %} Prefer processed OG images for responsive srcset, fallback to featured_image, else placeholder {% endcomment %}
-                                        {% if p.processed_og_image_large or p.processed_og_image_medium or p.processed_og_image_small %}
-                                                                        <img
-                                                    {% if p.processed_og_image_medium %}
-                                                                                src="{{ p.processed_og_image_medium.url }}"
-                                                    {% elif p.processed_og_image_large %}
-                                                                                src="{{ p.processed_og_image_large.url }}"
-                                                    {% elif p.processed_og_image_small %}
-                                                                                src="{{ p.processed_og_image_small.url }}"
-                                                    {% endif %}
-                                                                            srcset="{% if p.processed_og_image_small %}{{ p.processed_og_image_small.url }} 400w,{% endif %}{% if p.processed_og_image_medium %} {{ p.processed_og_image_medium.url }} 800w,{% endif %}{% if p.processed_og_image_large %} {{ p.processed_og_image_large.url }} 1200w{% endif %}"
-                                                                            sizes="(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
-                                                                            loading="lazy"
-                                                    class="card-image"
-                                                    alt="{{ p.title }}">
-                    {% elif p.featured_image %}
-                        <img src="{{ p.featured_image.url }}" loading="lazy" class="card-image" alt="{{ p.title }}">
-                    {% else %}
-                        {# no image: placeholder removed per request #}
-                    {% endif %}
+                    {# card images are rendered inside the loop below; avoid rendering a stray image before the loop #}
         {% for p in posts %}
             <div class="col-12 d-flex">
                 <article class="blog-card w-100 full-post-card">

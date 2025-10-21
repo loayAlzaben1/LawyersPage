@@ -18,7 +18,7 @@
 <p class="small text-muted">إجمالي القضايا المعروضة: {{ count|thousand_sep }}</p>
 
 {# Filters #}
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+    <div class="d-flex flex-wrap" style="gap:8px;margin-bottom:12px;align-items:center">
     <form method="get" id="cases-filters" style="display:flex;gap:8px;flex-wrap:wrap">
         <label class="small">الفئة:</label>
         <select name="category">
@@ -34,12 +34,12 @@
                 <option value="{{ t.name }}" {% if active_tag == t.name %}selected{% endif %}>{{ t.name }}</option>
             {% endfor %}
         </select>
-        <button type="submit" class="btn">تصفية</button>
+    <button type="submit" class="btn primary-btn">تصفية</button>
         {% if active_category or active_tag %}
             <a href="?" class="btn btn-link">مسح الفلاتر</a>
         {% endif %}
     </form>
-    <div style="margin-inline-start:auto;min-width:220px">
+    <div class="ms-auto" style="min-width:220px">
         <label for="casesSearch" class="sr-only">بحث القضايا</label>
         <div class="input-group">
             <input id="casesSearch" class="form-control" placeholder="ابحث عن قضية..." aria-label="ابحث عن قضية" />
@@ -97,7 +97,7 @@
 
 {# No results friendly message #}
 {% if count == 0 %}
-    <div style="padding:18px;border-radius:8px;background:#fff;border:1px solid rgba(11,45,77,0.04);margin-top:12px">
+    <div class="card-like" style="margin-top:12px">
         <h3>لا توجد قضايا لعرضها بعد</h3>
         <p class="small text-muted">نحن نقوم بتحديث صفحة القضايا باستمرار. يمكنك العودة لاحقًا أو التواصل معنا لعرض حالتك.</p>
     </div>

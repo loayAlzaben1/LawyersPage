@@ -101,9 +101,46 @@ def home(request):
         'site_stats': site_stats,
         'featured_cases': featured_cases,
         'hero_image_url': getattr(settings, 'HERO_IMAGE_URL', None),
+        # Provide a computed WebP fallback URL for templates instead of relying on a non-standard template filter.
+        'hero_image_webp_url': (lambda u: (u.rsplit('.', 1)[0] + '.webp') if (u and '.' in u) else None)(getattr(settings, 'HERO_IMAGE_URL', None)),
+        # If no HERO_IMAGE_URL is configured, detect a local static fallback image (prefer webp, then jpg, then svg)
+        'hero_static_fallback': None,
         'reviews': reviews,
         'reviews_json': reviews_json,
     }
+
+    # detect static fallback files present in the project's static/images directory
+    try:
+        # prefer webp, then jpg, then svg (paths relative to staticfiles storage)
+        static_candidates = ['images/hero-backyard.webp', 'images/hero-backyard.jpg', 'images/hero-backyard.png', 'images/hero-backyard.svg']
+        from django.contrib.staticfiles import finders
+        for rel in static_candidates:
+            found = finders.find(rel)
+            if found:
+                # construct URL via static() helper
+                from django.templatetags.static import static as static_url
+                context['hero_static_fallback'] = static_url(rel)
+                break
+        # If no explicit candidate was found, try scanning the project's static/images folder
+        if not context.get('hero_static_fallback'):
+            import os
+            base = getattr(settings, 'BASE_DIR', None)
+            if base:
+                images_dir = os.path.join(base, 'static', 'images')
+                try:
+                    exts = ('.webp', '.jpg', '.jpeg', '.png', '.svg')
+                    if os.path.isdir(images_dir):
+                        for fname in os.listdir(images_dir):
+                            if fname.lower().endswith(exts):
+                                rel = 'images/' + fname
+                                from django.templatetags.static import static as static_url
+                                context['hero_static_fallback'] = static_url(rel)
+                                break
+                except Exception:
+                    pass
+    except Exception:
+        # ignore failures; hero_static_fallback will remain None
+        pass
     return render(request, 'core/home.html', context)
 
 

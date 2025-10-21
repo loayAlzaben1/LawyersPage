@@ -72,12 +72,30 @@
 .hero-excerpt{ margin-top:12px; color:var(--text) }
 .hero-actions .btn { margin-inline-start:8px }
 
+/* Also clamp blog-hero (mobile template) to same safe limits so large images can't expand layout */
+.blog-hero .media, .hero-media{ overflow:hidden; display:block; max-width:100%; box-sizing:border-box; }
+.blog-hero .media, .hero-media{ max-height:340px; aspect-ratio:16/9; }
+.blog-hero .media img, .hero-media img{ width:100%; height:100%; object-fit:cover; display:block; }
+
 /* Image placeholder for list cards */
 .card-media { min-height: 180px; display:flex; align-items:center; justify-content:center; background:transparent; }
 .img-placeholder{ width:100%; height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(180deg, var(--card-bg), rgba(255,255,255,0.02)); color:var(--muted); border-radius:8px; }
 .img-placeholder .placeholder-icon{ font-size:28px; }
 .img-placeholder .placeholder-cat{ margin-top:6px; font-weight:700; }
-.card-media img.card-image{ width:100%; height:180px; object-fit:cover; border-radius:8px; }
+.card-media img.card-image{ width:100%; height:180px; object-fit:cover; border-radius:8px; max-height:220px; }
+@media (min-width:992px){ .card-media img.card-image{ height:220px; max-height:260px; } }
+@media (max-width:420px){ .card-media img.card-image{ height:140px; max-height:180px; } }
+
+/* Responsive adjustments for small screens */
+@media (max-width: 720px) {
+  .hero-article { flex-direction: column; gap:12px; padding:12px; }
+  .hero-media img, .hero-placeholder { width:100%; max-width:100%; height:auto; aspect-ratio:16/9; }
+  .hero-title { font-size: 1.4rem; }
+  .hero-actions .btn { display:block; width:100%; margin-bottom:8px; }
+  .card-media img.card-image, .card-media, .img-placeholder { height:140px; }
+  .blog-card .card-title { font-size:1.05rem; }
+  .posts-search-wrap { min-width:0; width:100%; }
+}
 
 /* Engage toolbar */
 .engage-toolbar { display:flex; gap:8px; align-items:center }
@@ -100,3 +118,27 @@
 .theme-dark .blog-card a:hover, .theme-dark .blog-card .card-title:hover, .theme-dark .hero-title a:hover{ color: var(--brand-deep); }
 .blog-card a{ color: var(--brand); }
 .blog-card a:hover{ color: var(--brand-deep); }
+
+/* Defensive overrides: ensure card body is always visible and images don't overflow
+   This helps when other global rules or malformed markup accidentally hide card content */
+.blog-card {
+  min-height: 260px; /* ensure space for media + body */
+  box-sizing: border-box;
+}
+.blog-card .card-body-custom {
+  display: block !important;
+  flex: 1 1 auto !important; /* allow body to grow inside flex column */
+  min-height: 40px;
+}
+.blog-card .card-media { overflow: hidden !important; }
+.blog-card .card-media img.card-image, .card-image {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  object-fit: cover !important;
+}
+
+/* Ensure image doesn't visually overlap the body — place media under the body in stacking context */
+.blog-card .card-media { position: relative; z-index: 1; }
+.blog-card .card-body-custom { position: relative; z-index: 2; background: transparent; padding-top: 12px; }
+.blog-card .card-media img.card-image { position: relative; z-index: 1; }

@@ -31,7 +31,8 @@ def index(request):
     except Exception:
         pass
 
-    return render(request, 'blog/index.html', {
+    # Render the new mobile-first template
+    return render(request, 'blog/mobile_index.html', {
         'posts': posts,
         'page_obj': posts,
         'is_paginated': paginator.num_pages > 1,
