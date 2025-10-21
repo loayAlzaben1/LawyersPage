@@ -163,3 +163,15 @@ p, li, span, h1, h2, h3, h4, h5, h6, td, th, .card, .case-card, .case-summary, .
 	background: var(--card-bg);
 	box-shadow: 0 8px 24px var(--card-elev, rgba(11,45,77,0.06));
 }
+
+/* Global heading styles requested by user: ensure headings are light and have no top margin */
+h1, h2, h3, h4 {
+    color: #f8f8f8;
+    margin-top: 0;
+}
+
+/* Specific h2 appearance to match user's snippet */
+h2.custom-hero {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+}
