@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" preserveAspectRatio="xMidYMid meet">
+  <!-- Square frame background -->
+  <rect width="100%" height="100%" fill="#ffffff"/>
+
+  <!-- Non-square artwork group (example 1600x900 artwork centered and letterboxed) -->
+  <!-- The inner artwork keeps its original aspect ratio. We place it inside the square canvas and scale it to fit while preserving aspect ratio. -->
+  <g id="artwork" transform="translate(300,150) scale(0.5)">
+    <!-- Simple illustrative artwork for concept: scales as a non-square (1600x900) piece -->
+    <!-- Background of artwork -->
+    <rect x="0" y="0" width="1600" height="900" rx="28" ry="28" fill="#f6fbff" stroke="#d0e6ff" stroke-width="6"/>
+
+    <!-- Stylized building/office icons representing companies -->
+    <g transform="translate(120,140) scale(0.85)">
+      <rect x="40" y="80" width="160" height="240" fill="#1f78b4" rx="8" />
+      <rect x="220" y="40" width="120" height="280" fill="#2b9bd7" rx="8" />
+      <rect x="360" y="120" width="200" height="200" fill="#6fb3e0" rx="8" />
+
+      <!-- windows -->
+      <g fill="#ffffff" opacity="0.95">
+        <rect x="66" y="110" width="40" height="40" rx="4" />
+        <rect x="66" y="170" width="40" height="40" rx="4" />
+        <rect x="66" y="230" width="40" height="40" rx="4" />
+
+        <rect x="236" y="70" width="36" height="36" rx="4" />
+        <rect x="236" y="120" width="36" height="36" rx="4" />
+        <rect x="236" y="170" width="36" height="36" rx="4" />
+
+        <rect x="386" y="150" width="42" height="42" rx="4" />
+        <rect x="438" y="150" width="42" height="42" rx="4" />
+        <rect x="490" y="150" width="42" height="42" rx="4" />
+      </g>
+    </g>
+
+    <!-- Arrows/paths representing restructuring flow -->
+    <g stroke="#0b6cb3" stroke-width="18" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.95">
+      <path d="M360 560 C 520 480, 760 480, 920 560" />
+      <polyline points="920,560 880,520 920,560 880,600" fill="#0b6cb3" stroke="#0b6cb3" stroke-width="18" />
+    </g>
+
+    <!-- Document icon to imply legal procedure -->
+    <g transform="translate(980,120) scale(0.7)">
+      <rect x="0" y="0" width="160" height="210" rx="8" fill="#fffef7" stroke="#eddc9a" stroke-width="6"/>
+      <path d="M18 38 h110" stroke="#d6b95a" stroke-width="8" stroke-linecap="round"/>
+      <path d="M18 78 h110" stroke="#d6b95a" stroke-width="8" stroke-linecap="round"/>
+      <path d="M18 118 h70" stroke="#d6b95a" stroke-width="8" stroke-linecap="round"/>
+    </g>
+
+    <!-- Title text inside artwork (Arabic + English small subtitle) -->
+    <g transform="translate(80,660)">
+      <text x="0" y="0" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#0b3a5a">إعادة هيكلة الشركات وفقاً للقانون الأردني</text>
+      <text x="0" y="72" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#025b8b">Economic Restructuring of Companies — A Mechanism for Bankruptcy Rescue</text>
+    </g>
+
+  </g>
+
+  <!-- Square frame border (optional) -->
+  <rect x="6" y="6" width="1188" height="1188" fill="none" stroke="#e6eef8" stroke-width="12" rx="18" ry="18" />
+
+  <!-- Accessibility: description (not visible) -->
+  <desc>Illustration: stylized company buildings, arrows representing restructuring flow, and a legal document — centered and letterboxed inside a square frame so the full non-square artwork is visible with blank space around it.</desc>
+</svg>
