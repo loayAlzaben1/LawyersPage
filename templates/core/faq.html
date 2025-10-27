@@ -1,8 +1,5 @@
 {% extends 'base.html' %}
-
 {% block title %}الأسئلة الشائعة - موقع {{ SITE_NAME }}{% endblock %}
-
-{# JSON-LD FAQ schema for SEO: renders questions/answers available on the page #}
 {% block extra_meta %}
   {% load faq_extras %}
   <script type="application/ld+json">
@@ -11,35 +8,48 @@
 {% endblock %}
 
 {% block content %}
-<main class="container faq-page mt-3">
-  <h1 id="faq-heading">الأسئلة الشائعة</h1>
+<section class="container faq-page mt-3">
+   <h1 id="faq-heading">الأسئلة الشائعة</h1>
 
-  <div class="accordion" id="faqAccordion" role="list" aria-labelledby="faq-heading">
-    {% for item in faqs %}
-    <article class="card" id="faq-item-{{ forloop.counter }}" role="listitem">
-      <header class="card-header" id="heading{{ forloop.counter }}">
-        <h2 class="mb-0">
-          <button class="btn btn-link faq-toggle" type="button" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ forloop.counter }}" data-toggle="collapse" data-target="#collapse{{ forloop.counter }}" id="btn{{ forloop.counter }}">
-            <span class="faq-q">{{ item.q }}</span>
-            <!-- chevron rotates automatically using aria-expanded CSS selector -->
-            <i class="bi bi-chevron-down chev" aria-hidden="true" style="margin-inline-start:8px; font-size:1.05rem"></i>
-          </button>
-          <a class="faq-permalink" href="#faq-item-{{ forloop.counter }}" aria-label="Link to question">🔗</a>
-        </h2>
-      </header>
-      <div id="collapse{{ forloop.counter }}" class="collapse {% if forloop.first %}show{% endif %}" data-parent="#faqAccordion" aria-labelledby="heading{{ forloop.counter }}">
-        <div class="card-body">
-          {{ item.a|safe }}
-        </div>
-      </div>
-    </article>
-    {% endfor %}
-  </div>
+   <!-- Toolbar: expand/collapse all + search + result count -->
+   <div class="faq-toolbar d-flex flex-wrap align-items-center justify-content-between mb-3" style="gap:8px;">
+     <div class="btn-group" role="group" aria-label="FAQ controls">
+       <button id="faqExpandAll" class="btn btn-sm btn-outline-primary" type="button">عرض الكل</button>
+       <button id="faqCollapseAll" class="btn btn-sm btn-outline-secondary" type="button">إغلاق الكل</button>
+     </div>
+     <div class="input-group ms-2" style="max-width:420px;">
+       <input id="faqSearch" class="form-control form-control-sm" type="search" placeholder="ابحث في الأسئلة..." aria-label="بحث في الأسئلة">
+       <button id="faqClear" class="btn btn-sm btn-outline-secondary" type="button" title="مسح البحث" aria-label="مسح البحث">مسح</button>
+       <span id="faqResultCount" class="input-group-text small text-muted" style="min-width:72px; text-align:center">كل الأسئلة</span>
+     </div>
+   </div>
 
-  <div class="mt-4">
-    <p class="small">لم تجد إجابتك؟ <a href="/contact/">تواصل معنا</a> أو <a href="/appointment/">احجز موعدًا</a>.</p>
-  </div>
-</main>
+   <div class="accordion" id="faqAccordion" role="list" aria-labelledby="faq-heading">
+     {% for item in faqs %}
+     <article class="card faq-card" id="faq-item-{{ forloop.counter }}" role="listitem" data-q="{{ item.q|escapejs }}">
+       <header class="card-header" id="heading{{ forloop.counter }}">
+         <h2 class="mb-0">
+           <button class="btn btn-link faq-toggle d-flex align-items-center" type="button" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ forloop.counter }}" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" id="btn{{ forloop.counter }}">
+             <span class="faq-q flex-grow-1 text-truncate">{{ item.q }}</span>
+             <!-- animated chevron -->
+             <i class="bi bi-chevron-down chev ms-2" aria-hidden="true" style="font-size:1.05rem"></i>
+           </button>
+           <a class="faq-permalink" href="#faq-item-{{ forloop.counter }}" aria-label="Link to question">🔗</a>
+         </h2>
+       </header>
+       <div id="collapse{{ forloop.counter }}" class="collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#faqAccordion" aria-labelledby="heading{{ forloop.counter }}">
+         <div class="card-body faq-answer">
+           {{ item.a|safe }}
+         </div>
+       </div>
+     </article>
+     {% endfor %}
+   </div>
+
+   <div class="mt-4">
+     <p class="small">لم تجد إجابتك؟ <a href="/contact/">تواصل معنا</a> أو <a href="/appointment/">احجز موعدًا</a>.</p>
+   </div>
+ </section>
 {% endblock %}
 
 {% block extra_js %}
@@ -73,6 +83,181 @@
   });
 })();
 </script>
+
+<!-- UI improvements: styles + expand/collapse all + search -->
+<script>
+(function(){
+  // Inject scoped FAQ styles for improved UI
+  var css = '\
+  .faq-card{ border-radius:12px; overflow:hidden; border:1px solid rgba(11,45,77,0.06); transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; }\
+  .faq-card:hover{ transform:translateY(-6px); box-shadow:0 18px 40px rgba(11,45,77,0.06); }\
+  .faq-toggle{ padding:14px 12px; width:100%; text-align:right; font-weight:700; }\
+  .faq-toggle .faq-q{ font-weight:700; }\
+  .chev{ transition: transform .22s ease; }\
+  .faq-toggle[aria-expanded=\"true\"] .chev{ transform: rotate(180deg); }\
+  .faq-answer{ transition: opacity .18s ease, transform .18s ease; }\
+  .faq-toolbar .btn{ min-width:86px }\
+  .faq-card.hidden{ display:none !important; }';
+  // highlight + matched card visuals + result count
+  css += '\
+  .faq-card.matched{ border-color:var(--brand); box-shadow:0 20px 48px rgba(13,110,253,0.06); }\
+  .faq-q mark{ background: rgba(13,110,253,0.14); color:inherit; padding:0 2px; border-radius:3px }\
+  #faqResultCount{ background:transparent; border-left:1px solid rgba(11,45,77,0.04); }';
+  var s = document.createElement('style'); s.appendChild(document.createTextNode(css)); document.head.appendChild(s);
+
+  // helpers
+  function q(sel, ctx){ return (ctx || document).querySelector(sel); }
+  function qa(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); }
+
+  var expandBtn = q('#faqExpandAll'), collapseBtn = q('#faqCollapseAll'), searchEl = q('#faqSearch');
+  var clearBtn = q('#faqClear'), resultCount = q('#faqResultCount');
+  var accordion = q('#faqAccordion');
+  if (!accordion) return;
+
+  // preserve expand state so we can restore after search cleared
+  var savedStates = null;
+  function saveStates(){
+    if (savedStates) return;
+    savedStates = {};
+    qa('.faq-toggle').forEach(function(btn){
+      savedStates[btn.id] = (btn.getAttribute('aria-expanded') === 'true');
+    });
+  }
+  function restoreStates(){
+    if (!savedStates) return;
+    qa('.faq-toggle').forEach(function(btn){
+      var isOpen = !!savedStates[btn.id];
+      var panelId = btn.getAttribute('aria-controls');
+      var panel = q('#' + panelId);
+      try{
+        if (window.bootstrap && bootstrap.Collapse && typeof bootstrap.Collapse.getOrCreateInstance === 'function'){
+          var inst = bootstrap.Collapse.getOrCreateInstance(panel);
+          if (isOpen) inst.show(); else inst.hide();
+        } else {
+          if (isOpen) panel.classList.add('show'); else panel.classList.remove('show');
+          btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+      }catch(e){}
+    });
+    savedStates = null;
+  }
+
+  // Expand/Collapse all with bootstrap (if available) or fallback
+  function setAll(open){
+    var panels = qa('#faqAccordion .collapse');
+    panels.forEach(function(p){
+      try{
+        if (window.bootstrap && bootstrap.Collapse && typeof bootstrap.Collapse.getOrCreateInstance === 'function'){
+          var inst = bootstrap.Collapse.getOrCreateInstance(p);
+          if (open) inst.show(); else inst.hide();
+        } else {
+          if (open){ p.classList.add('show'); var btn = document.querySelector('[data-bs-target=\"#'+p.id+'\"], [data-target=\"#'+p.id+'\"]'); if (btn) btn.setAttribute('aria-expanded','true'); }
+          else { p.classList.remove('show'); var btn = document.querySelector('[data-bs-target=\"#'+p.id+'\"], [data-target=\"#'+p.id+'\"]'); if (btn) btn.setAttribute('aria-expanded','false'); }
+        }
+      }catch(e){}
+    });
+  }
+  if (expandBtn) expandBtn.addEventListener('click', function(){ setAll(true); });
+  if (collapseBtn) collapseBtn.addEventListener('click', function(){ setAll(false); });
+
+  // Search/filter with small debounce
+  var debounceTimer = null;
+  function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function highlightText(el, term){
+    // highlight only in the question span (safe simple text replacement)
+    try{
+      var txt = el.textContent || '';
+      if (!term){ el.innerHTML = txt; return; }
+      var re = new RegExp('(' + escapeRegExp(term) + ')', 'ig');
+      el.innerHTML = txt.replace(re, '<mark>$1</mark>');
+    }catch(e){}
+  }
+  function filterFaq(term){
+    term = (term||'').trim();
+    var lc = term.toLowerCase();
+    var cards = qa('.faq-card');
+    var matchCount = 0;
+    if (term) saveStates();
+    cards.forEach(function(card){
+      var qtext = (card.getAttribute('data-q') || '');
+      var aEl = card.querySelector('.faq-answer');
+      var atext = aEl ? (aEl.textContent || '') : '';
+      var matched = false;
+      if (!term || qtext.toLowerCase().indexOf(lc) !== -1 || atext.toLowerCase().indexOf(lc) !== -1) matched = true;
+
+      // show/hide
+      if (matched){ card.classList.remove('hidden'); card.classList.add('matched'); matchCount++; }
+      else { card.classList.add('hidden'); card.classList.remove('matched'); }
+
+      // highlight question text
+      var qSpan = card.querySelector('.faq-q');
+      if (qSpan) highlightText(qSpan, term);
+
+      // expand matching panels while searching
+      var btn = card.querySelector('.faq-toggle');
+      if (btn){
+        var panelId = btn.getAttribute('aria-controls');
+        var panel = q('#' + panelId);
+        try{
+          if (term && matched){
+            if (window.bootstrap && bootstrap.Collapse && typeof bootstrap.Collapse.getOrCreateInstance === 'function'){ bootstrap.Collapse.getOrCreateInstance(panel).show(); }
+            else { panel.classList.add('show'); btn.setAttribute('aria-expanded','true'); }
+          } else if (!term){
+            /* restore later */ 
+          } else {
+            // when searching, collapse non-matches
+            if (window.bootstrap && bootstrap.Collapse && typeof bootstrap.Collapse.getOrCreateInstance === 'function'){ bootstrap.Collapse.getOrCreateInstance(panel).hide(); }
+            else { panel.classList.remove('show'); btn.setAttribute('aria-expanded','false'); }
+          }
+        }catch(e){}
+      }
+    });
+
+    // update result count UI
+    if (resultCount){
+      if (!term) resultCount.textContent = 'كل الأسئلة';
+      else resultCount.textContent = (matchCount === 0) ? 'لا نتائج' : (matchCount + ' نتيجة' + (matchCount>1? '' : ''));
+    }
+
+    // if there is at least one match, smooth-scroll to the first; if terminal empty, restore saved states
+    if (term && matchCount>0){
+      var first = qa('.faq-card.matched')[0];
+      if (first){
+        try{ first.scrollIntoView({ behavior:'smooth', block:'center' }); first.querySelector('.faq-toggle').focus(); }catch(e){}
+      }
+    } else if (!term){
+      restoreStates();
+      // remove any leftover highlights
+      qa('.faq-q').forEach(function(s){ try{ s.innerHTML = s.textContent; }catch(e){} });
+    }
+  }
+  if (searchEl){
+    searchEl.addEventListener('input', function(){
+      clearTimeout(debounceTimer);
+      var v = this.value || '';
+      debounceTimer = setTimeout(function(){ filterFaq(v); }, 160);
+    });
+  }
+  if (clearBtn){
+    clearBtn.addEventListener('click', function(){
+      if (searchEl){ searchEl.value = ''; searchEl.focus(); filterFaq(''); }
+    });
+  }
+
+  // Ensure chevron state updates for non-Bootstrap toggles (listen for attribute changes)
+  var toggles = qa('.faq-toggle');
+  toggles.forEach(function(t){
+    // when a toggle is clicked, Bootstrap updates aria-expanded automatically; we just ensure the attribute reflects state for CSS
+    t.addEventListener('click', function(){ /* noop: CSS uses aria-expanded */ });
+  });
+
+  // accessibility: keyboard support already attached; ensure toolbar buttons are focusable
+  if (expandBtn) expandBtn.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }});
+  if (collapseBtn) collapseBtn.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }});
+
+})();
+</script>
+
 <script>
 // ARIA live announcements for screen readers when FAQ panels open/close.
 (function(){
@@ -107,7 +292,8 @@
     try{
       var panel = ev.target || ev.currentTarget;
       var id = panel.id || '';
-      var btn = container.querySelector('[data-target="#'+id+'"], [aria-controls="'+id+'"]');
+      // prefer Bootstrap 5 data-bs-target but fall back to legacy data-target for compatibility
+      var btn = container.querySelector('[data-bs-target="#'+id+'"], [data-target="#'+id+'"], [aria-controls="'+id+'"]');
       var q = btn && btn.querySelector('.faq-q') ? btn.querySelector('.faq-q').textContent.trim() : 'سؤال';
       announce(q + ' — الإجابة ظاهرة');
     }catch(e){}
@@ -117,7 +303,7 @@
     try{
       var panel = ev.target || ev.currentTarget;
       var id = panel.id || '';
-      var btn = container.querySelector('[data-target="#'+id+'"], [aria-controls="'+id+'"]');
+      var btn = container.querySelector('[data-bs-target="#'+id+'"], [data-target="#'+id+'"], [aria-controls="'+id+'"]');
       var q = btn && btn.querySelector('.faq-q') ? btn.querySelector('.faq-q').textContent.trim() : 'سؤال';
       announce(q + ' — تم إغلاق الإجابة');
     }catch(e){}
