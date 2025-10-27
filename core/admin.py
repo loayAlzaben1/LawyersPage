@@ -12,7 +12,17 @@ class LawyerProfileAdmin(TranslatableAdmin):
 
 @admin.register(Service)
 class ServiceAdmin(TranslatableAdmin):
-    list_display = ('title', 'order')
+    list_display = ('title', 'order', 'admin_icon')
+    readonly_fields = ('admin_icon',)
+
+    def admin_icon(self, obj):
+        try:
+            if obj.icon and hasattr(obj.icon, 'url'):
+                return format_html('<img src="{}" style="height:40px;width:40px;object-fit:cover;border-radius:6px;" />', obj.icon.url)
+        except Exception:
+            pass
+        return ''
+    admin_icon.short_description = 'رمز'
 
 
 @admin.register(Appointment)
@@ -48,6 +58,7 @@ from django.utils.html import format_html
 from django.contrib import admin
 from .models import CaseDocument
 from .models import Category, Tag, CaseImage
+from .models import FAQ
 from .models import WebPushSubscription
 from .utils import send_webpush
 from django.contrib.auth import get_user_model
@@ -83,6 +94,15 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name',)
+
+
+@admin.register(FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    list_display = ('question', 'is_active', 'order', 'created_at')
+    list_editable = ('is_active', 'order')
+    search_fields = ('question', 'answer')
+    list_filter = ('is_active',)
+    ordering = ('order', '-created_at')
 
 
 CaseAdmin.inlines += [CaseImageInline]

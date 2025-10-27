@@ -145,8 +145,8 @@ document.addEventListener('DOMContentLoaded', function(){
                     </div>
                 {% endfor %}
             </div>
-            <div style="margin-top:12px;display:flex;justify-content:center">
-                <a href="/blog/" class="btn btn-outline-primary">المزيد من المقالات</a>
+                <div style="margin-top:12px;display:flex;justify-content:center">
+                <a href="/blog/" class="btn primary-btn ripple">المزيد من المقالات</a>
             </div>
         </section>
         {% endif %}
@@ -165,7 +165,11 @@ document.addEventListener('DOMContentLoaded', function(){
             <div class="service-card p-3 h-100">
                 <div>
                     <h4 style="margin:0 0 8px 0;font-size:1.05rem;display:flex;align-items:center;gap:10px">
-                                        {% if s.slug == 'consultations' %}
+                    {% if s.icon %}
+                        <span class="icon-badge" aria-hidden="true" style="color:var(--brand-deep);">
+                            <img src="{{ s.icon.url }}" alt="" style="width:28px;height:28px;object-fit:contain;display:block;" />
+                        </span>
+                    {% elif s.slug == 'consultations' %}
                                                 <span class="icon-badge icon-blue" aria-hidden="true" {% if forloop.counter == 1 %}style="animation-delay:0s"{% elif forloop.counter == 2 %}style="animation-delay:0.18s"{% elif forloop.counter == 3 %}style="animation-delay:0.36s"{% endif %}>
                                                     <!-- headphone SVG -->
                                                     <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 1a7 7 0 00-7 7v3a2 2 0 002 2h1a1 1 0 001-1V8a1 1 0 00-1-1H3a5 5 0 0110 0h-1a1 1 0 00-1 1v4a1 1 0 001 1h1a2 2 0 002-2V8a7 7 0 00-7-7z"/></svg>

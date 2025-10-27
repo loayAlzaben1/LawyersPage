@@ -21,8 +21,10 @@
         <h2 class="mb-0">
           <button class="btn btn-link faq-toggle" type="button" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ forloop.counter }}" data-toggle="collapse" data-target="#collapse{{ forloop.counter }}" id="btn{{ forloop.counter }}">
             <span class="faq-q">{{ item.q }}</span>
+            <!-- chevron rotates automatically using aria-expanded CSS selector -->
+            <i class="bi bi-chevron-down chev" aria-hidden="true" style="margin-inline-start:8px; font-size:1.05rem"></i>
           </button>
-          <a class="ml-2 text-muted" href="#faq-item-{{ forloop.counter }}" aria-label="Link to question">🔗</a>
+          <a class="faq-permalink" href="#faq-item-{{ forloop.counter }}" aria-label="Link to question">🔗</a>
         </h2>
       </header>
       <div id="collapse{{ forloop.counter }}" class="collapse {% if forloop.first %}show{% endif %}" data-parent="#faqAccordion" aria-labelledby="heading{{ forloop.counter }}">
@@ -69,6 +71,76 @@
       }
     });
   });
+})();
+</script>
+<script>
+// ARIA live announcements for screen readers when FAQ panels open/close.
+(function(){
+  var container = document.querySelector('.faq-page');
+  if (!container) return;
+
+  // Create a polite live region if not present
+  var live = document.getElementById('faq-live-region');
+  if (!live){
+    live = document.createElement('div');
+    live.id = 'faq-live-region';
+    live.setAttribute('aria-live', 'polite');
+    live.setAttribute('aria-atomic', 'true');
+    live.style.position = 'absolute';
+    live.style.width = '1px';
+    live.style.height = '1px';
+    live.style.overflow = 'hidden';
+    live.style.clip = 'rect(1px, 1px, 1px, 1px)';
+    live.style.whiteSpace = 'nowrap';
+    live.style.border = '0';
+    container.appendChild(live);
+  }
+
+  function announce(message){
+    try{
+      live.textContent = '';
+      setTimeout(function(){ live.textContent = message; }, 60);
+    }catch(e){ }
+  }
+
+  function onShown(ev){
+    try{
+      var panel = ev.target || ev.currentTarget;
+      var id = panel.id || '';
+      var btn = container.querySelector('[data-target="#'+id+'"], [aria-controls="'+id+'"]');
+      var q = btn && btn.querySelector('.faq-q') ? btn.querySelector('.faq-q').textContent.trim() : 'سؤال';
+      announce(q + ' — الإجابة ظاهرة');
+    }catch(e){}
+  }
+
+  function onHidden(ev){
+    try{
+      var panel = ev.target || ev.currentTarget;
+      var id = panel.id || '';
+      var btn = container.querySelector('[data-target="#'+id+'"], [aria-controls="'+id+'"]');
+      var q = btn && btn.querySelector('.faq-q') ? btn.querySelector('.faq-q').textContent.trim() : 'سؤال';
+      announce(q + ' — تم إغلاق الإجابة');
+    }catch(e){}
+  }
+
+  if (window.bootstrap && typeof Event === 'function'){
+    document.addEventListener('shown.bs.collapse', onShown, false);
+    document.addEventListener('hidden.bs.collapse', onHidden, false);
+  } else {
+    var obs = new MutationObserver(function(records){
+      records.forEach(function(r){
+        if (r.type !== 'attributes') return;
+        var target = r.target;
+        if (!target.classList.contains('faq-toggle')) return;
+        var expanded = target.getAttribute('aria-expanded') === 'true';
+        var q = target.querySelector('.faq-q') ? target.querySelector('.faq-q').textContent.trim() : 'سؤال';
+        announce(q + (expanded ? ' — الإجابة ظاهرة' : ' — تم إغلاق الإجابة'));
+      });
+    });
+    var toggles = container.querySelectorAll('.faq-toggle');
+    toggles.forEach(function(t){ obs.observe(t, { attributes: true, attributeFilter: ['aria-expanded'] }); });
+  }
+
 })();
 </script>
 {% endblock %}

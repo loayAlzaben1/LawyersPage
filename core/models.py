@@ -28,6 +28,9 @@ class Service(TranslatableModel):
     )
     slug = models.SlugField(unique=True)
     order = models.PositiveIntegerField(default=0)
+    # Optional admin-uploaded icon to display next to the service title.
+    # Stored under MEDIA_ROOT/service_icons/ and editable via Django admin.
+    icon = models.ImageField(upload_to='service_icons/', blank=True, null=True)
 
     def __str__(self):
         return self.safe_translation_getter('title', any_language=True)
@@ -178,6 +181,31 @@ class Review(models.Model):
     def __str__(self):
         return f"Review {self.pk} - {self.name} ({self.rating})"
 
+
+class FAQ(models.Model):
+    """Admin-manageable FAQ entries shown on the /faq/ page.
+
+    Fields:
+      - question: short question text
+      - answer: HTML/plain text answer (rendered safe in templates)
+      - is_active: whether to show this FAQ on the public page
+      - order: integer controlling ordering (lower first)
+      - created_at/updated_at timestamps
+    """
+    question = models.CharField(max_length=255)
+    answer = models.TextField()
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', '-created_at']
+        verbose_name = 'FAQ'
+        verbose_name_plural = 'FAQs'
+
+    def __str__(self):
+        return (self.question[:75] + '...') if len(self.question) > 75 else self.question
 
 class WebPushSubscription(models.Model):
     """Stores a browser push subscription for use with Web Push (VAPID).

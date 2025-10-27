@@ -154,11 +154,19 @@ def services_list(request):
 
 
 def faq(request):
-    faqs = [
-        {'q': 'كم تكلفة الاستشارة؟', 'a': 'تختلف التكلفة حسب نوع القضية وطول الجلسة. الرجاء استخدام نموذج الحجز للحصول على تقدير.'},
-        {'q': 'هل تتوفر استشارات عبر الإنترنت؟', 'a': 'نعم، تتوفر استشارات عبر مكالمة فيديو بعد تحديد موعد.'},
-        {'q': 'كيف أرفع مستند لمراجعة القضية؟', 'a': 'أثناء حجز الموعد يمكنك رفع مرفق بصيغة PDF أو صورة. يُنصح بضغط الملفات الكبيرة.'},
-    ]
+    # Prefer persisted FAQ entries managed via admin. Fall back to a small
+    # built-in list if the model/table isn't available (e.g., during early
+    # setup/migrations).
+    try:
+        from .models import FAQ
+        qs = FAQ.objects.filter(is_active=True).order_by('order', '-created_at')
+        faqs = [{'q': f.question, 'a': f.answer} for f in qs]
+    except Exception:
+        faqs = [
+            {'q': 'كم تكلفة الاستشارة؟', 'a': 'تختلف التكلفة حسب نوع القضية وطول الجلسة. الرجاء استخدام نموذج الحجز للحصول على تقدير.'},
+            {'q': 'هل تتوفر استشارات عبر الإنترنت؟', 'a': 'نعم، تتوفر استشارات عبر مكالمة فيديو بعد تحديد موعد.'},
+            {'q': 'كيف أرفع مستند لمراجعة القضية؟', 'a': 'أثناء حجز الموعد يمكنك رفع مرفق بصيغة PDF أو صورة. يُنصح بضغط الملفات الكبيرة.'},
+        ]
     return render(request, 'core/faq.html', {'faqs': faqs})
 
 

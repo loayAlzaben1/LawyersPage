@@ -12,7 +12,7 @@
   {% for lawyer in lawyers %}
     {# Link to core lawyer detail; works for LawyerProfile or legacy LawyerCard since both have a PK #}
     <a class="lawyer-link" href="{% url 'core:lawyer_detail' lawyer.pk %}" style="text-decoration:none;color:inherit;display:block">
-      <article class="lawyer-card post-card fade-in-up">
+      <article class="lawyer-card post-card fade-in-up darker">
         <div class="lawyer-media">
           {# Prefer core.LawyerProfile.photo, then legacy .image field, then placeholder #}
           {% if lawyer.photo %}
