@@ -9,6 +9,42 @@
 {% endblock %}
 {% block content %}
 <main class="container mt-4">
+        <style>
+            /* Make service listing cards dark with light text to match homepage */
+            .service-card {
+                background: #0f1724 !important;
+                color: #ffffff !important;
+                border-color: rgba(255,255,255,0.06) !important;
+            }
+            .service-card h4,
+            .service-card p,
+            .service-card a,
+            .service-card .appointment-cta {
+                color: #ffffff !important;
+            }
+            .service-card .icon-badge { color: #ffffff !important; }
+            .service-card .text-muted { color: rgba(255,255,255,0.78) !important; }
+                    /* Also apply to column children that might not have .service-card class */
+                    #servicesGrid .col-12.col-md-6.col-lg-4 > div,
+                    #servicesGrid .col-12.col-md-6.col-lg-4 > a > div {
+                        background: #0f1724 !important;
+                        color: #ffffff !important;
+                        border-color: rgba(255,255,255,0.06) !important;
+                    }
+                            /* Broader fallback for any column children inside the services grid */
+                            #servicesGrid .row [class*="col-"] > * {
+                                background: #0f1724 !important;
+                                color: #ffffff !important;
+                                border-color: rgba(255,255,255,0.06) !important;
+                            }
+            /* Ensure variables are set inside the services grid so inline styles that use var() update */
+            #servicesGrid{
+                --card-bg: #0f1724 !important;
+                --card-border: rgba(255,255,255,0.06) !important;
+                --muted-text: rgba(255,255,255,0.78) !important;
+                --text: #ffffff !important;
+            }
+        </style>
     <header class="d-flex flex-column flex-md-row align-items-start justify-content-between mb-3">
         <div>
             <h1 class="h3 mb-1">الخدمات</h1>

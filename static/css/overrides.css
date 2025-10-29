@@ -1,0 +1,100 @@
+/* Overrides for card theming and service cards
+   Placed last so it can safely override inline template styles where necessary.
+*/
+
+/* Ensure service cards are dark and readable */
+.service-card {
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  border-radius: 10px !important;
+  padding: 20px !important;
+  background: #0f1724 !important; /* explicit dark bg */
+  color: #ffffff !important; /* explicit white text */
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease !important;
+}
+
+.service-card h4,
+.service-card p,
+.service-card a,
+.service-card .appointment-cta {
+  color: #ffffff !important;
+}
+
+/* Fallback: any direct child inside a bootstrap column should also get dark card styling */
+.row [class*="col-"] > * {
+  background: #0f1724 !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+
+/* Featured cases and other anchor-wrapped cards on the homepage */
+.featured-cases .card,
+.featured-cases a > .card,
+.featured-cases a.card,
+.featured-cases .card-body,
+.featured-cases .card-title,
+.featured-cases .card-text {
+  background: #0f1724 !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+
+/* Featured cases: ensure cards and inner body adopt dark theme */
+.home-cards-root .featured-cases,
+.featured-cases {
+  --card-bg: #0f1724 !important;
+  --card-border: rgba(255,255,255,0.06) !important;
+  --muted-text: rgba(255,255,255,0.78) !important;
+  --text: #ffffff !important;
+}
+.featured-cases .card,
+.featured-cases .card-body,
+.featured-cases a > .card,
+.featured-cases a .card {
+  background: #0f1724 !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+.featured-cases .card .card-title,
+.featured-cases .card .card-text,
+.featured-cases .card-text.text-muted,
+.featured-cases .card .card-body {
+  color: #ffffff !important;
+}
+
+/* Extra high-specificity fallback for any card-like element inside home rows */
+.home-cards-root .row [class*="col-"] > *[class*="card"] {
+  background: #0f1724 !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+
+/* Make sure CSS variables used in inline styles resolve to dark values when inside services/home */
+.home-cards-root, #servicesGrid {
+  --card-bg: #0f1724 !important;
+  --card-border: rgba(255,255,255,0.06) !important;
+  --muted-text: rgba(255,255,255,0.78) !important;
+  --text: #ffffff !important;
+}
+
+/* Buttons inside cards should remain legible */
+.service-card .btn, .service-card a.btn {
+  color: #ffffff !important;
+}
+
+/* Counter cards (small stat boxes) - force dark background and light text */
+.counter-card {
+  background: #0f1724 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: 0 8px 20px rgba(255,255,255,0.02) !important;
+}
+.counter-card .h2 {
+  color: #ffffff !important;
+}
+.counter-card .small.text-muted,
+.counter-card .text-muted {
+  color: rgba(255,255,255,0.78) !important;
+}

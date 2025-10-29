@@ -9,6 +9,89 @@
     {% endif %}
 {% endblock %}
 {% block content %}
+<div class="home-cards-root">
+
+<style>
+    /* Propagate card-related CSS variables inside the homepage scope so elements using var() update accordingly */
+    .home-cards-root{
+        --card-bg: #0f1724 !important;
+        --card-border: rgba(255,255,255,0.06) !important;
+        --muted-text: rgba(255,255,255,0.78) !important;
+        --text: #ffffff !important;
+    }
+    /* Scope: make cards on the homepage dark with very light text */
+    .home-cards-root .card,
+    .home-cards-root .service-card,
+    .home-cards-root .post-card,
+    .home-cards-root .testimonial-item,
+    .home-cards-root .review-card,
+    .home-cards-root .counter-card,
+    .home-cards-root .lawyer-card,
+    .home-cards-root .faq-card {
+        background: #0f1724 !important; /* dark slate */
+        color: #ffffff !important; /* force bright text */
+        border-color: rgba(255,255,255,0.06) !important;
+    }
+
+    /* Force headings and body text inside the homepage wrapper to be bright */
+    .home-cards-root h1,
+    .home-cards-root h2,
+    .home-cards-root h3,
+    .home-cards-root h4,
+    .home-cards-root h5,
+    .home-cards-root h6,
+    .home-cards-root p,
+    .home-cards-root span,
+    .home-cards-root strong,
+    .home-cards-root em,
+    .home-cards-root label,
+    .home-cards-root .card-title,
+    .home-cards-root .card-text,
+    .home-cards-root .service-card h4,
+    .home-cards-root .testimonial-item,
+    .home-cards-root .lawyer-card,
+    .home-cards-root .post-card .card-body,
+    .home-cards-root .counter-card,
+    .home-cards-root .faq-card {
+        color: #ffffff !important;
+    }
+
+    /* Muted text should still be readable but lighter than before */
+    .home-cards-root .card .text-muted,
+    .home-cards-root .small.text-muted,
+    .home-cards-root .muted,
+    .home-cards-root .text-muted {
+        color: rgba(255,255,255,0.78) !important; /* brighter muted text */
+    }
+
+    /* Ensure links and buttons inside cards are readable */
+    .home-cards-root a { color: #ffffff !important; }
+    .home-cards-root a.btn,
+    .home-cards-root .btn {
+        color: #ffffff !important;
+    }
+
+    /* Images: keep original rendering but avoid forced filters */
+    .home-cards-root img { filter: none !important; }
+
+    /* Preserve contrast for small text inside badges */
+    .home-cards-root .icon-badge { color: #ffffff !important; }
+
+        /* Catch column children that don't have a specific card class */
+        .home-cards-root .col-12.col-md-6.col-lg-4 > div,
+        .home-cards-root .col-12.col-md-6.col-lg-4 > a > div {
+            background: #0f1724 !important;
+            color: #ffffff !important;
+            border-color: rgba(255,255,255,0.06) !important;
+        }
+
+            /* Broader fallback: any direct child of a bootstrap column inside rows on the homepage */
+            .home-cards-root .row [class*="col-"] > * {
+                background: #0f1724 !important;
+                color: #ffffff !important;
+                border-color: rgba(255,255,255,0.06) !important;
+            }
+</style>
 
 <div class="hero text-center mb-4 hero--loading" role="region" aria-label="Hero">
     {% if hero_image_url or hero_static_fallback %}
@@ -443,5 +526,7 @@ document.addEventListener('DOMContentLoaded', function(){
     document.querySelectorAll('.counter-card').forEach(card => io.observe(card));
 });
 </script>
+
+    </div>
 
 {% endblock %}
